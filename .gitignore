@@ -1,5 +1,10 @@
+# Secrets
+.env
+
 # Dependency directories
 node_modules/
 
-# Webstorm config
+# Webstorm config files.
 .idea/
+
+#Vscode config files.
