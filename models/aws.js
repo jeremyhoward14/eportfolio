@@ -23,15 +23,11 @@ AWS.config.region = 'ap-southeast-2';
 
 const s3 = new AWS.S3();
 
-function uploadFile(filename, folderName = undefined) {
+function uploadFile(filename, folderName) {
     fs.readFile(filename, (err, data) => {
         if (err) throw err;
 
-        if (folderName === undefined) {
-            var folderKey = "tests/";
-        } else {
-            var folderKey = encodeURIComponent(folderName) + "/";
-        }
+        var folderKey = getFolderKey(folderName);
 
         const params = {
             Bucket: process.env.AWS_BUCKET,
@@ -46,17 +42,19 @@ function uploadFile(filename, folderName = undefined) {
 };
 
 
-function createFolder(folder) {
-    folder = folder.trim();
-    if (!folder) {
+function createFolder(folderName) {
+    folderName = folderName.trim();
+    if (!folderName) {
       console.log("Folder names must contain at least one non-space character.");
       return 
     }
-    if (folder.includes('/')) {
+    if (folderName.includes('/')) {
       console.log("Folder names cannot contain slashes.");
       return 
     }
-    var folderKey = encodeURIComponent(folder);
+
+    // here we don't use getFolderKey as that adds a '/'
+    var folderKey = encodeURIComponent(folderName);
 
     s3.headObject({ Key: folderKey, Bucket: process.env.AWS_BUCKET }, function(err, data) {
       if (!err) {
@@ -64,12 +62,12 @@ function createFolder(folder) {
         return 
       }
       if (err.code !== "NotFound") {
-        console.log("There was an error creating your folder: " + err.message);
+        console.log("There was an error creating folder: " + err.message);
         return 
       }
       s3.putObject({ Key: folderKey, Bucket: process.env.AWS_BUCKET }, function(err, data) {
         if (err) {
-          console.log("There was an error creating your folder: " + err.message);
+          console.log("There was an error creating folder: " + err.message);
           return 
         }
         console.log("Successfully created folder: " + folderKey);
@@ -78,8 +76,25 @@ function createFolder(folder) {
 }
 
 
+function deleteFile(fileName, folderName) {
 
-createFolder("more_tests")
+    var fileKey = getFolderKey(folderName) + fileName;
+    
+    s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET}, function(err, data) {
+        if (err) {
+            console.log("There was an error deleting the file " + err.message);
+            return 
+        }
+        console.log("Successfully deleted file.");
+    });
+}
 
-uploadFile("test3.pdf", "more_tests");
 
+function getFolderKey(folderName = undefined) {
+    if (folderName === undefined) {
+        var folderKey = "tests/";
+    } else {
+        var folderKey = encodeURIComponent(folderName) + "/";
+    }
+    return folderKey;
+}
