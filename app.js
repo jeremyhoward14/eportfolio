@@ -1,16 +1,14 @@
-const express = require('express');
-const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
-const swaggerJsDoc = require('swagger-jsdoc');
-const swaggerUI = require('swagger-ui-express');
 const flash = require('connect-flash');
 const session = require('express-session');
 const passport = require('passport');
+let cookieParser = require('cookie-parser');
+const express = require('express');
 
 //Passoprt config
 require('./config/passport')(passport);
 
+const swaggerJsDoc = require('swagger-jsdoc');
+const swaggerUI = require('swagger-ui-express');
 //Specify swagger configuration
 const swaggerOptions = {
     swaggerDefinition: {
@@ -37,11 +35,9 @@ let authRouter = require('./routes/auth');
 //Create the express app
 const app = express();
 
-app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
 //Express session
 app.use(session({
