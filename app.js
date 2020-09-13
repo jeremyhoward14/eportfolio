@@ -4,8 +4,8 @@ const passport = require('passport');
 let cookieParser = require('cookie-parser');
 const express = require('express');
 
-//Passoprt config
-require('./config/passport')(passport);
+//Passport config
+require('./config/passport')(passport);r
 
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
@@ -35,6 +35,7 @@ let authRouter = require('./routes/auth');
 //Create the express app
 const app = express();
 
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -60,13 +61,14 @@ app.use((req, res, next) => {
     next();
 })
 
-
 //Handle the routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+
 app.use('/auth', authRouter);
+
 //Create the route for the API route documentation
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
-app.listen(3000);
+//app.listen(3000);
 module.exports = app;
