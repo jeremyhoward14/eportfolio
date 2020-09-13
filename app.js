@@ -5,7 +5,7 @@ let cookieParser = require('cookie-parser');
 const express = require('express');
 
 //Passport config
-require('./config/passport')(passport);r
+require('./config/passport')(passport);
 
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
