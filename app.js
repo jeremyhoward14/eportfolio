@@ -1,16 +1,14 @@
-let express = require('express');
-let path = require('path');
-let cookieParser = require('cookie-parser');
-let logger = require('morgan');
-
-const flash = require('express-flash');
+const flash = require('connect-flash');
 const session = require('express-session');
 const passport = require('passport');
-const methodOverride = require('method-override');
+let cookieParser = require('cookie-parser');
+const express = require('express');
+
+//Passport config
+require('./config/passport')(passport);r
 
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
-
 //Specify swagger configuration
 const swaggerOptions = {
     swaggerDefinition: {
@@ -32,36 +30,45 @@ require("./models/db");
 //Set up the routes
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
-let loginRouter = require('./routes/login');
-let registerRouter = require('./routes/register');
+let authRouter = require('./routes/auth');
 
 //Create the express app
 const app = express();
 
-app.set('view-engine', 'ejs');
 
-app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(flash());
+
+//Express session
 app.use(session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false
+    secret: 'secret',
+    resave: true,
+    saveUninitialized: true
 }))
+
+//Passport middleware
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(methodOverride('_method'));
+
+app.use(flash());
+
+//Global variables
+app.use((req, res, next) => {
+    res.locals.success_msg = req.flash('success_msg');
+    res.locals.error_msg = req.flash('error_msg');
+    res.locals.error = req.flash('error');
+    next();
+})
 
 //Handle the routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/login', loginRouter);
-app.use('/register', registerRouter);
+
+app.use('/auth', authRouter);
+
 //Create the route for the API route documentation
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
-
+//app.listen(3000);
 module.exports = app;
