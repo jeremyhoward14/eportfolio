@@ -71,5 +71,5 @@ app.use('/posts', postRoute);
 //Create the route for the API route documentation
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
 
-app.listen(3000);
+//app.listen(3000);
 module.exports = app;
