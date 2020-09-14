@@ -2,18 +2,21 @@ require('dotenv').config();
 const fs = require('fs');
 const AWS = require('aws-sdk');
 
+// update the AWS config
+AWS.config = new AWS.Config();
+AWS.config.accessKeyId = process.env.AWS_ACCESS_KEY;
+AWS.config.secretAccessKey = process.env.AWS_SECRET_KEY;
+AWS.config.region = 'ap-southeast-2';
+
+
+// These next methods seem to be more 'modern' ways of setting hte config but I can't get them to work
+
 // const SESConfig = {
 //     accessKeyId: process.env.AWS_ACCESS_KEY,
 //     accessSecretKey: process.env.AWS_SECRET_KEY,
 //     region: 'ap-southeast-2'
 // }
-
 // AWS.config.update(SESConfig);
-
-AWS.config = new AWS.Config();
-AWS.config.accessKeyId = process.env.AWS_ACCESS_KEY;
-AWS.config.secretAccessKey = process.env.AWS_SECRET_KEY;
-AWS.config.region = 'ap-southeast-2';
 
 // const s3 = new AWS.S3({
 //     accessKeyID: process.env.AWS_ACCESS_KEY,
@@ -23,6 +26,12 @@ AWS.config.region = 'ap-southeast-2';
 
 const s3 = new AWS.S3();
 
+/* 
+    upload a file given by filename to AWS S3
+    if foldername is not speicifed, uploads to the tests/ folder
+
+    returns the url the file was uploaded to, to be inserted into the mongo db
+*/
 function uploadFile(filename, folderName) {
     fs.readFile(filename, (err, data) => {
         if (err) throw err;
@@ -49,13 +58,19 @@ function uploadFile(filename, folderName) {
                 return getFileURL(fileKey);
             },
             function (err) {
-                return console.log("Error uploading file: " + err.message);
+                console.log("Error uploading file: " + err.message);
+                return
             }
         );
     });
 };
 
 
+/*
+    creates a folder on AWS S3
+    This could either be used to create folders for individual users, or for 
+    users to be able to create their own folders (or both)
+*/
 function createFolder(folderName) {
     folderName = folderName.trim();
     if (!folderName) {
@@ -90,6 +105,10 @@ function createFolder(folderName) {
 }
 
 
+/* 
+    delete a file given by filename from AWS S3
+    if foldername is not speicifed, deletes from the tests/ folder
+*/
 function deleteFile(fileName, folderName) {
 
     var fileKey = getFolderKey(folderName) + encodeURIComponent(fileName);
@@ -103,7 +122,9 @@ function deleteFile(fileName, folderName) {
     });
 }
 
-
+/*
+    convert a foldername into a valid string to store, and adds a '/'
+*/
 function getFolderKey(folderName = undefined) {
     if (folderName === undefined) {
         var folderKey = "tests/";
@@ -113,6 +134,9 @@ function getFolderKey(folderName = undefined) {
     return folderKey;
 }
 
+/*
+    generate the url that a file will be saved to based on its fileKey
+*/
 function getFileURL(fileKey) {
     return "https://" + process.env.AWS_BUCKET + ".s3." + process.env.AWS_REGION + ".amazonaws.com/" + fileKey
 }
