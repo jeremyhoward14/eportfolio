@@ -4,6 +4,9 @@ const jwt = require('jsonwebtoken');
 const auth = require('../middleware/auth');
 const passport = require('passport');
 
+const {registerValidation, loginValidation} = require('../validation');
+
+
 const getAllUsers = (req, res) => {
     Users.find({}, (findErr, data) => {
       if (findErr) {
@@ -14,19 +17,23 @@ const getAllUsers = (req, res) => {
     });
   };
 
+
 const registerUser = (req, res) => {
     const { username, email, password, firstname, lastname } = req.body;
 
-    if(!username || !email || !password || !firstname || !lastname){
-        return res.status(400).json({ msg: 'hello'});
+    const {error} = registerValidation(req.body);
+    if(error){
+      return res.status(400).send(error.details[0].message);
     }
 
+    //Check if user (email) already in database
     Users.findOne({ email})
       .then(user => {
         if(user) {
-          return res.status(400).json({ msg: 'User already exists'});
+          return res.status(400).json({ msg: 'Email already exists'});
         }
-
+        
+        //else create new user
         const newUser = new Users({
           username,
           email,
@@ -67,13 +74,22 @@ const registerUser = (req, res) => {
       })
 }
 
-const loginUser = (req, res) => {
+const loginUser = async (req, res) => {
 
-  passport.authenticate('local', {
-    successRedirect: '/index',
-    failureRedirect: '/users/login',
-    failureFlash: true
-  })(req, res, next);
+  const{error} = loginValidation(req.body);
+  if(error){
+    return res.status(400).send(error.details[0].message);
+  }
+  const user = await Users.findOne({ email: req.body.email});
+  if(!user) return res.status(400).send('Email does not exist');
+
+  const validPass = await bcrypt.compare(req.body.password, user.password);
+  if(!validPass) return res.status(400).send('Invalid password');
+
+  const token = jwt.sign({id: user.id}, process.env.jwtSecret, { expiresIn: 3600});
+  res.header('auth-token', token).send(token);
+  
+  res.send('Logged in!')
 
 };
 
