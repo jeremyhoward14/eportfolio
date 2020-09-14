@@ -89,7 +89,11 @@ const loginUser = async (req, res) => {
   const token = jwt.sign({id: user.id}, process.env.jwtSecret, { expiresIn: 3600});
 
   try{
-  res.header('auth-token', token).send(token);
+  //res.header('auth-token', token).send(token);
+  res.json({
+    token,
+    id: user.id
+  });
   }
   catch (e) { throw e};
   //res.send('Logged in!')

@@ -21,8 +21,45 @@ const userController = require("../controllers/users");
  */
 router.get("/", (req, res) => userController.getAllUsers(req, res));
 
-router.post("/register", (req, res)=> userController.registerUser(req, res));
+/**
+ * @swagger
+ * /users/signup:
+ *   post:
+ *     description: Supplying user schema adds user to database after checking validation.
+ *     parameters:
+ *       - name: username
+ *       - name: email
+ *       - name: password
+ *       - name: firstname
+ *       - name: lastname
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: JSON of registered user with attached token
+ *       400:
+ *         description: validation error
+ *       
+ */
+router.post("/signup", (req, res)=> userController.registerUser(req, res));
 
+/**
+ * @swagger
+ * /users/login:
+ *   post:
+ *     description: log in
+ *     parameters:
+ *       - name: email
+ *       - name: password
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: returns JWT of user and user's id as user.token and user.id
+ *       400:
+ *         description: validation error
+ *       
+ */
 router.post("/login", async (req, res) => userController.loginUser(req, res));
 
 router.get('/logout', (req, res) => userController.logOutUser(req, res));
