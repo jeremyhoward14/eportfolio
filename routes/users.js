@@ -23,7 +23,7 @@ router.get("/", (req, res) => userController.getAllUsers(req, res));
 
 router.post("/register", (req, res)=> userController.registerUser(req, res));
 
-router.post("/login", (req, res) => userController.loginUser(req, res));
+router.post("/login", async (req, res) => userController.loginUser(req, res));
 
 router.get('/logout', (req, res) => userController.logOutUser(req, res));
 
