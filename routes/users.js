@@ -65,18 +65,4 @@ router.post("/login", async (req, res) => userController.loginUser(req, res));
 router.get('/logout', (req, res) => userController.logOutUser(req, res));
 
 
-/**
- * @swagger
- * /profile/:id :
- *   get:
- *     description: Returns a single user.
- *     produces:
- *       - application/json
- *     responses:
- *       200:
- *         description: A user array with their respective details.
- */
-router.get("/", (req, res) => userController.getOneUser(req, res));
-
-
 module.exports = router;
