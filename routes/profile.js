@@ -9,11 +9,16 @@ const profileController = require("../controllers/profile");
 
 /**
  * @swagger
- * /profile/:id :
+ * /profile/{id} :
  *   get:
  *     description: Returns a single user.
  *     parameters:
- *       - name: id
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: The user ID.
  *     produces:
  *       - application/json
  *     responses:
