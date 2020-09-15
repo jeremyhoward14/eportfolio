@@ -4,7 +4,7 @@ const Users = require("../models/users");
 const getOneUser = async (req, res) => {
     var userNotFoundError;
 
-    const user = await Users.findOne({ _id: req.params.id}).catch(err => { userNotFoundError = err});
+    const user = await Users.findOne({ username: req.params.id}).catch(err => { userNotFoundError = err});
 
     if(userNotFoundError || !user){
         return res.status(400).send('User does not exist');

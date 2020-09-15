@@ -18,7 +18,7 @@ const profileController = require("../controllers/profile");
  *         required: true
  *         type: string
  *         minimum: 1
- *         description: The user ID.
+ *         description: username
  *     produces:
  *       - application/json
  *     responses:
