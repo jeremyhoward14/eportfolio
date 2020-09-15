@@ -17,17 +17,6 @@ const getAllUsers = (req, res) => {
     });
   };
 
-// get a single user by username
-const getOneUser = (req, res) => {
-  Users.find({name: req.body.username}, (findErr, data) => {
-    if (findErr) {
-      res.status(500).send("Database error");
-    } else {
-      res.send(data);
-    }
-  });
-};
-
 const registerUser = (req, res) => {
     const { username, email, password, firstname, lastname } = req.body;
 
@@ -117,7 +106,6 @@ const logOutUser = (req, res) => {
 }
 module.exports = {
     getAllUsers,
-    getOneUser,
     registerUser,
     loginUser,
     logOutUser
