@@ -12,6 +12,8 @@ const profileController = require("../controllers/profile");
  * /profile/:id :
  *   get:
  *     description: Returns a single user.
+ *     parameters:
+ *       - name: id
  *     produces:
  *       - application/json
  *     responses:
