@@ -13,7 +13,18 @@ const getAllUsers = (req, res) => {
         res.send(data);
       }
     });
-  };
+};
+
+
+const getOneUser = (req, res) => {
+    Users.findOne({ username: req.params.id }, (findErr, data) => {
+      if (findErr) {
+        res.status(500).send("Database error");
+      } else {
+        res.send(data);
+      }
+    });
+};
 
 const registerUser = (req, res) => {
     const { username, email, password, firstname, lastname } = req.body;
@@ -24,9 +35,9 @@ const registerUser = (req, res) => {
     }
 
     //Check if user (email) already in database
-    Users.findOne({ email})
+    Users.findOne({ email })
       .then(user => {
-        if(user) {
+        if (user) {
           return res.status(400).json({ msg: 'Email already exists'});
         }
         
@@ -57,7 +68,7 @@ const registerUser = (req, res) => {
                         token,
                         user: {
                           id: user.id,
-                          username: user.name,
+                          username: user.username,
                           email:user.email,
                           firstname: user.firstname,
                           lastname: user.lastname
@@ -69,7 +80,7 @@ const registerUser = (req, res) => {
           })
         })
       })
-}
+};
 
 const loginUser = async (req, res) => {
 
@@ -98,6 +109,7 @@ const loginUser = async (req, res) => {
 };
 module.exports = {
     getAllUsers,
+    getOneUser,
     registerUser,
     loginUser,
 };
