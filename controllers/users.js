@@ -1,8 +1,6 @@
 const Users = require("../models/users");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
-const auth = require('../middleware/auth');
-const passport = require('passport');
 
 const {registerValidation, loginValidation} = require('../validation');
 
@@ -98,15 +96,8 @@ const loginUser = async (req, res) => {
   //res.send('Logged in!')
 
 };
-
-const logOutUser = (req, res) => {
-  //req.logOut();
-  res.redirect('/docs');
-  //return res.status(200).json({ msg: 'User logged out'});
-}
 module.exports = {
     getAllUsers,
     registerUser,
     loginUser,
-    logOutUser
 };

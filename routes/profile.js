@@ -1,6 +1,4 @@
-const e = require('express');
 var express = require('express');
-const auth = require('../middleware/auth');
 
 //Create router
 var router = express.Router();
