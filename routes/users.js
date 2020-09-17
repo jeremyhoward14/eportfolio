@@ -48,36 +48,69 @@ router.get("/:id", (req, res) => userController.getOneUser(req, res));
  * /users/signup:
  *   post:
  *     description: Supplying user schema adds user to database after checking validation.
+ *     consumes:
+ *       - application/json
  *     parameters:
- *       - name: username
- *       - name: email
- *       - name: password
- *       - name: firstname
- *       - name: lastname
+ *       - in: body
+ *         name: user
+ *         description: The user to create.
+ *         schema:
+ *           type: object
+ *           required:
+ *             - username
+ *             - email
+ *             - password
+ *             - firstname
+ *             - lastname
+ *           properties:
+ *             username:
+ *               type: string
+ *             email:
+ *               type: string
+ *             password:
+ *               type: string
+ *             firstname:
+ *               type: string
+ *             lastname:
+ *               type: string
  *     produces:
  *       - application/json
  *     responses:
- *       200:
- *         description: JSON of registered user with attached token
+ *       201:
+ *         description: Created registered user and returns JWT of user.
  *       400:
  *         description: validation error
  *       
  */
 router.post("/signup", (req, res)=> userController.registerUser(req, res));
 
+
 /**
  * @swagger
  * /users/login:
  *   post:
- *     description: log in
+ *     description: Checks if the password matches email.
+ *     consumes:
+ *       - application/json
  *     parameters:
- *       - name: email
- *       - name: password
+ *       - in: body
+ *         name: credentials
+ *         description: The email and password.
+ *         schema:
+ *           type: object
+ *           required:
+ *             - email
+ *             - password
+ *           properties:
+ *             email:
+ *               type: string
+ *             password:
+ *               type: string
  *     produces:
  *       - application/json
  *     responses:
- *       200:
- *         description: returns JWT of user and user's id as user.token and user.id
+ *       201:
+ *         description: Returns JWT of user and user's id as user.token and user.id
  *       400:
  *         description: validation error
  *       

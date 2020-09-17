@@ -35,9 +35,9 @@ const registerUser = (req, res) => {
     }
 
     //Check if user (email) already in database
-    Users.findOne({ email})
+    Users.findOne({ email })
       .then(user => {
-        if(user) {
+        if (user) {
           return res.status(400).json({ msg: 'Email already exists'});
         }
         
@@ -68,7 +68,7 @@ const registerUser = (req, res) => {
                         token,
                         user: {
                           id: user.id,
-                          username: user.name,
+                          username: user.username,
                           email:user.email,
                           firstname: user.firstname,
                           lastname: user.lastname
