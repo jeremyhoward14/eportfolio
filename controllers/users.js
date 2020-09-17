@@ -13,7 +13,18 @@ const getAllUsers = (req, res) => {
         res.send(data);
       }
     });
-  };
+};
+
+
+const getOneUser = (req, res) => {
+    Users.findOne({ username: req.params.id }, (findErr, data) => {
+      if (findErr) {
+        res.status(500).send("Database error");
+      } else {
+        res.send(data);
+      }
+    });
+};
 
 const registerUser = (req, res) => {
     const { username, email, password, firstname, lastname } = req.body;
@@ -69,7 +80,7 @@ const registerUser = (req, res) => {
           })
         })
       })
-}
+};
 
 const loginUser = async (req, res) => {
 
@@ -98,6 +109,7 @@ const loginUser = async (req, res) => {
 };
 module.exports = {
     getAllUsers,
+    getOneUser,
     registerUser,
     loginUser,
 };

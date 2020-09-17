@@ -22,6 +22,29 @@ router.get("/", (req, res) => userController.getAllUsers(req, res));
 
 /**
  * @swagger
+ * /users/{id} :
+ *   get:
+ *     description: Returns a single user.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: username
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       400:
+ *         description: User does not exist
+ *       200:
+ *         description: A user array with their respective details.
+ */
+router.get("/:id", (req, res) => userController.getOneUser(req, res));
+
+
+/**
+ * @swagger
  * /users/signup:
  *   post:
  *     description: Supplying user schema adds user to database after checking validation.
