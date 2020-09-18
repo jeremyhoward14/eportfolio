@@ -2,6 +2,7 @@ const flash = require('connect-flash');
 const session = require('express-session');
 let cookieParser = require('cookie-parser');
 const express = require('express');
+const cors = require('cors');
 
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
@@ -35,6 +36,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(cors());
 
 //Express session
 app.use(session({
