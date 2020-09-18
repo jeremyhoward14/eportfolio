@@ -27,8 +27,9 @@ const getOneUser = (req, res) => {
 };
 
 const registerUser = (req, res) => {
+    console.log(req.body);
     const { username, email, password, firstname, lastname } = req.body;
-
+    console.log(req.body);
     const {error} = registerValidation(req.body);
     if(error){
       return res.status(400).send(error.details[0].message);
