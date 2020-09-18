@@ -32,7 +32,7 @@ const registerUser = (req, res) => {
     console.log(req.body);
     const {error} = registerValidation(req.body);
     if(error){
-      return res.status(400).send(error.details[0].message);
+      return res.status(400).send(req.body);
     }
 
     //Check if user (email) already in database
