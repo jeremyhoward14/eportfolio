@@ -230,4 +230,50 @@ chai.request(app)
   });
 });
 
+/*
+  * Test the /GET route for finding a user
+  */
+ describe('/GET users for users/{id}', () => {
+  it('it should successfully GET user if user is in database', (done) => {
+    let registerUser = {
+      "username": "string",
+      "email": "string@gmail.com",
+      "password": "string",
+      "firstname": "string",
+      "lastname": "string"
+    }
+    let id = "string";
+  chai.request(app)
+      .post('/users/signup')
+      .send(registerUser)
+      .end((err, res) => {
+        res.should.have.status(200);
+  
+        chai.request(app)
+        .get('/users/' + id)
+        .end((err, res) => {
+            res.should.have.status(200);
+            res.body.should.have.property('username');
+            res.body.should.have.property('email');
+            res.body.should.have.property('password');
+            res.body.should.have.property('firstname');
+            res.body.should.have.property('lastname');
+            res.body.should.have.property('projects');
+          done();
+        });
+      }) 
+  }); 
+
+  it('it should not GET user if user is not in database', (done) => {
+    let id = "string";
+    chai.request(app)
+    .get('/users/' + id)
+    .end((err, res) => {
+        res.should.have.status(500);
+        res.text.should.be.eql('Database error');
+      done();
+    });
+  });
+});
+
 });

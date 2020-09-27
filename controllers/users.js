@@ -17,13 +17,14 @@ const getAllUsers = (req, res) => {
 
 
 const getOneUser = (req, res) => {
-    Users.findOne({ username: req.params.id }, (findErr, data) => {
-      if (findErr) {
-        res.status(500).send("Database error");
-      } else {
-        res.send(data);
-      }
-    });
+    Users.findOne({ username: req.params.id})
+      .then(user => {
+        if (user) {
+          res.send(user);
+        } else{
+          res.status(500).send("Database error");
+        }        
+      })
 };
 
 const registerUser = async (req, res) => {
