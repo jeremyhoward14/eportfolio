@@ -16,14 +16,16 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10.x, 12.x, 14.x]  # Test these version of node.js
+        node-version: [14.x]  # Test this version of node.js
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v2  # Bring the source code into the current working directory
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm ci  # Do a clean install
+    - run: npm ci  # Do a clean install of the node dependencies
     - run: npm run build --if-present
     - run: npm test
+      env:  # Set environment variables
+        db_url: ${{ DATABASE_URL }}
