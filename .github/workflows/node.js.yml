@@ -28,4 +28,4 @@ jobs:
     - run: npm run build --if-present
     - run: npm test
       env:  # Set environment variables
-        db_url: ${{ DATABASE_URL }}
+        db_url: ${{ secrets.DATABASE_URL }}
