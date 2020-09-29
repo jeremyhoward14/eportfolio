@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 function auth(req, res, next){
 
-    const token = req.header('auth-token');
+    const token = req.header('x-auth-token');
 
     //check for token
     if(!token){
