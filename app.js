@@ -1,11 +1,8 @@
 const flash = require('connect-flash');
 const session = require('express-session');
-const passport = require('passport');
 let cookieParser = require('cookie-parser');
 const express = require('express');
-
-//Passport config
-require('./config/passport')(passport);
+const cors = require('cors');
 
 const swaggerJsDoc = require('swagger-jsdoc');
 const swaggerUI = require('swagger-ui-express');
@@ -30,9 +27,7 @@ require("./models/db");
 //Set up the routes
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
-let authRouter = require('./routes/auth');
 let postRoute = require('./routes/posts');
-let profileRoute = require('./routes/profile');
 
 //Create the express app
 const app = express();
@@ -41,6 +36,7 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+app.use(cors());
 
 //Express session
 app.use(session({
@@ -48,10 +44,6 @@ app.use(session({
     resave: true,
     saveUninitialized: true
 }))
-
-//Passport middleware
-app.use(passport.initialize());
-app.use(passport.session());
 
 app.use(flash());
 
@@ -66,9 +58,7 @@ app.use((req, res, next) => {
 //Handle the routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/auth', authRouter);
 app.use('/posts', postRoute);
-app.use('/profile', profileRoute);
 
 //Create the route for the API route documentation
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));

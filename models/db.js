@@ -6,6 +6,7 @@ const mongoDB = process.env.DATABASE_URL;
 mongoose.connect(mongoDB, {
                             useNewUrlParser: true,
                             useUnifiedTopology: true,
+                            useCreateIndex: true,
                         });
 
 //Get the default connection
