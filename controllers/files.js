@@ -47,5 +47,5 @@ const deleteFile = (req, res) => {
 
 module.exports = {
     uploadFile,
-    deleteFile
+    deleteFile,
 }
