@@ -33,10 +33,16 @@ const s3 = new AWS.S3();
     folder scheme follows "/username/projectname/file"
 
     returns the url the file was uploaded to, to be inserted into the mongo db
+
+    callback has 2 arguments (err, url)
+        - err is null or contains the AWS error message
+        - url wil hold the URL that the file was uploaded to
 */
-function uploadFile(filename, username, projectname) {
+function uploadFile(filename, username, projectname, callback) {
     fs.readFile(filename, (err, data) => {
-        if (err) throw err;
+        if (err) {
+            callback(err, undefined);
+        }
 
         var fileKey = getFolderKey(username, projectname) + encodeURIComponent(filename);
 
@@ -56,11 +62,12 @@ function uploadFile(filename, username, projectname) {
 
         promise.then(
             function (data) {
-                console.log(`Successfully uploaded file: ${data.Location}`);
-                return getFileURL(fileKey);
+                // console.log(`Successfully uploaded file: ${data.Location}`);
+                callback(null, getFileURL(fileKey));
             },
             function (err) {
-                console.log("Error uploading file: " + err.message);
+                // console.log("Error uploading file: " + err.message);
+                callback(err.message, undefined);
                 return
             }
         );
@@ -110,6 +117,8 @@ function createFolder(folderName) {
 /* 
     delete a file given by filename from AWS S3
     if foldername is not speicifed, deletes from the tests/ folder
+
+    callback has 1 argument (err) that will contain the AWS error message
 */
 function deleteFile(fileName, username, projectname, callback) {
 

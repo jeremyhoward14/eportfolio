@@ -11,12 +11,15 @@ const uploadFile = (req, res) => {
     var filename = req.body.file;
     var projectname = req.body.projectname;
 
-    aws.uploadFile(filename, username, projectname, (url) => {
-        if (url === undefined) {
-            res.send(500).send("upload error");
-        } else {
-            res.send(url);          // does url get sent?
+    aws.uploadFile(filename, username, projectname, (err, url) => {
+        if (err) {
+            throw err;
+            // res.send(500).send("upload error");
+            // return
         }
+
+        // at this point, the URL should be added to the mongoDB
+        res.send(url);
     })
 };
 
@@ -36,6 +39,7 @@ const deleteFile = (req, res) => {
         if (err) {
             res.send(500).send("error deleting file");
         } else {
+            // at this point we should remove the link from the mongoDB
             res.send(200);
         }
     })
