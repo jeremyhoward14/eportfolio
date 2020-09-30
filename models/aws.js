@@ -9,7 +9,7 @@ AWS.config.secretAccessKey = process.env.AWS_SECRET_KEY;
 AWS.config.region = 'ap-southeast-2';
 
 
-// These next methods seem to be more 'modern' ways of setting hte config but I can't get them to work
+// These next methods seem to be more 'modern' ways of setting the config but I can't get them to work
 
 // const SESConfig = {
 //     accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -30,13 +30,15 @@ const s3 = new AWS.S3();
     upload a file given by filename to AWS S3
     if foldername is not speicifed, uploads to the tests/ folder
 
+    folder scheme follows "/username/projectname/file"
+
     returns the url the file was uploaded to, to be inserted into the mongo db
 */
-function uploadFile(filename, folderName) {
+function uploadFile(filename, username, projectname) {
     fs.readFile(filename, (err, data) => {
         if (err) throw err;
 
-        var fileKey = getFolderKey(folderName) + encodeURIComponent(filename);
+        var fileKey = getFolderKey(username, projectname) + encodeURIComponent(filename);
 
         const params = {
             Bucket: process.env.AWS_BUCKET,
@@ -109,27 +111,27 @@ function createFolder(folderName) {
     delete a file given by filename from AWS S3
     if foldername is not speicifed, deletes from the tests/ folder
 */
-function deleteFile(fileName, folderName) {
+function deleteFile(fileName, username, projectname, callback) {
 
     var fileKey = getFolderKey(folderName) + encodeURIComponent(fileName);
 
     s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
         if (err) {
-            console.log("There was an error deleting the file " + err.message);
+            callback(err.message);
             return
         }
-        console.log("Successfully deleted file.");
+        callback(null);
     });
 }
 
 /*
-    convert a foldername into a valid string to store, and adds a '/'
+    convert a username and projectname into a valid string to act as a foldername, and adds a '/'
 */
-function getFolderKey(folderName = undefined) {
-    if (folderName === undefined) {
+function getFolderKey(username = undefined, projectname = undefined) {
+    if (folderName === undefined || projectname === undefined) {
         var folderKey = "tests/";
     } else {
-        var folderKey = encodeURIComponent(folderName) + "/";
+        var folderKey = encodeURIComponent(folderName) + "/" + encodeURIComponent(projectname) + "/";
     }
     return folderKey;
 }
@@ -139,4 +141,9 @@ function getFolderKey(folderName = undefined) {
 */
 function getFileURL(fileKey) {
     return "https://" + process.env.AWS_BUCKET + ".s3." + process.env.AWS_REGION + ".amazonaws.com/" + fileKey
+}
+
+module.exports = {
+    uploadFile,
+    deleteFile
 }
