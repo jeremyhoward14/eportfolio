@@ -38,8 +38,8 @@ describe('Users', () => {
  describe('/POST users/signup', () => {
   it('it should POST a user to the database', (done) => {
       let user = {
-        "username": "string",
-        "email": "string@gmail.com",
+        "username": "registerme",
+        "email": "registerme@gmail.com",
         "password": "string",
         "firstname": "string",
         "lastname": "string"
@@ -63,18 +63,18 @@ describe('Users', () => {
 
   it('it should not POST a user with identical usernames to another in db', (done) => {
     let user = {
-      "username": "string",
-      "email": "string@gmail.com",
-      "password": "string",
-      "firstname": "string",
-      "lastname": "string"
+      "username": "sameUsername",
+      "email": "asdf@gmail.com",
+      "password": "asdf",
+      "firstname": "asdf",
+      "lastname": "asdf"
     }
     let user2 = {
-      "username": "string",
-      "email": "string@gmail.com",
-      "password": "string",
-      "firstname": "string",
-      "lastname": "string"
+      "username": "sameUsername",
+      "email": "asdf2@gmail.com",
+      "password": "asdf2",
+      "firstname": "asdf2",
+      "lastname": "asdf2"
     }
   chai.request(app)
       .post('/users/signup')
@@ -97,15 +97,15 @@ describe('Users', () => {
 
 it('it should not POST a user with identical emails to another in db', (done) => {
   let user = {
-    "username": "string",
-    "email": "string@gmail.com",
+    "username": "userA",
+    "email": "sameEmail@gmail.com",
     "password": "string",
     "firstname": "string",
     "lastname": "string"
   }
   let user2 = {
-    "username": "string2",
-    "email": "string@gmail.com",
+    "username": "userB",
+    "email": "sameEmail@gmail.com",
     "password": "string",
     "firstname": "string",
     "lastname": "string"
@@ -130,11 +130,11 @@ chai.request(app)
 
 it('it should not POST a user if email is not the right format', (done) => {
   let user = {
-    "username": "string",
-    "email": "string",
-    "password": "string",
-    "firstname": "string",
-    "lastname": "string"
+    "username": "test",
+    "email": "incorrectformat",
+    "password": "test5",
+    "firstname": "test",
+    "lastname": "test"
   }
 chai.request(app)
     .post('/users/signup')
@@ -154,15 +154,15 @@ chai.request(app)
  describe('/POST users for users/login', () => {
   it('it should successfully POST user for logging in', (done) => {
     let registerUser = {
-      "username": "string",
-      "email": "string@gmail.com",
-      "password": "string",
-      "firstname": "string",
-      "lastname": "string"
+      "username": "reg",
+      "email": "reg@gmail.com",
+      "password": "reg",
+      "firstname": "reg",
+      "lastname": "reg"
     }
     let loginUser = {
-      "email": "string@gmail.com",
-      "password": "string"     
+      "email": "reg@gmail.com",
+      "password": "reg"     
     }
   chai.request(app)
       .post('/users/signup')
@@ -174,10 +174,15 @@ chai.request(app)
         .post('/users/login')
         .send(loginUser)
         .end((err, res) => {
-            res.should.have.status(200);
-            res.body.should.be.a('object');
-            res.body.should.have.property('token');
-            res.body.should.have.property('id');
+          res.should.have.status(200);
+          res.body.should.be.a('object');
+          res.body.should.have.property('token');
+          res.body.should.have.property('user');
+          res.body.user.should.have.property('id');
+          res.body.user.should.have.property('username');
+          res.body.user.should.have.property('email');
+          res.body.user.should.have.property('firstname');
+          res.body.user.should.have.property('lastname');
 
           done();
         });
@@ -186,7 +191,7 @@ chai.request(app)
 
   it('it should not POST user for logging in if email does not exist', (done) => {
     let loginUser = {
-      "email": "string@gmail.com",
+      "email": "noreg@gmail.com",
       "password": "string"     
     }
   chai.request(app)
@@ -201,14 +206,14 @@ chai.request(app)
 
   it('it should not POST user for logging in if password if incorrect', (done) => {
     let registerUser = {
-      "username": "string",
-      "email": "string@gmail.com",
+      "username": "passwordLoginIncorrect",
+      "email": "passwordinc@gmail.com",
       "password": "string",
       "firstname": "string",
       "lastname": "string"
     }
     let loginUser = {
-      "email": "string@gmail.com",
+      "email": "passwordinc@gmail.com",
       "password": "incorrectpassword"     
     }
   chai.request(app)
@@ -236,13 +241,13 @@ chai.request(app)
  describe('/GET users for users/{id}', () => {
   it('it should successfully GET user if user is in database', (done) => {
     let registerUser = {
-      "username": "string",
-      "email": "string@gmail.com",
+      "username": "getUser",
+      "email": "getUser@gmail.com",
       "password": "string",
       "firstname": "string",
       "lastname": "string"
     }
-    let id = "string";
+    let id = "getUser";
   chai.request(app)
       .post('/users/signup')
       .send(registerUser)
@@ -262,10 +267,10 @@ chai.request(app)
           done();
         });
       }) 
-  }); 
+  });  
 
   it('it should not GET user if user is not in database', (done) => {
-    let id = "string";
+    let id = "notInDb";
     chai.request(app)
     .get('/users/' + id)
     .end((err, res) => {
