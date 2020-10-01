@@ -29,3 +29,4 @@ jobs:
     - run: npm test
       env:  # Set environment variables
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        jwtSecret: ${{ secrets.jwtSecret }}
