@@ -17,24 +17,35 @@ const getAllUsers = (req, res) => {
 
 
 const getOneUser = (req, res) => {
-    Users.findOne({ username: req.params.id }, (findErr, data) => {
-      if (findErr) {
-        res.status(500).send("Database error");
-      } else {
-        res.send(data);
-      }
-    });
+    Users.findOne({ username: req.params.id})
+      .then(user => {
+        if (user) {
+          res.send(user);
+        } else{
+          res.status(500).send("Database error");
+        }        
+      })
 };
 
-const registerUser = (req, res) => {
+const registerUser = async (req, res) => {
     const { username, email, password, firstname, lastname } = req.body;
 
     const {error} = registerValidation(req.body);
     if(error){
-      return res.status(400).send(req.body);
+      return res.status(400).json({msg: error.details[0].message});
     }
-
-    //Check if user (email) already in database
+    
+    //Check if username already in database
+    const err = await Users.findOne({ username})
+      .then(user => {
+        if (user) {
+          return res.status(400).json({ msg: 'Username already exists'});
+        }        
+      })
+    if(err){
+      return err;
+    }
+    //Check if email already in database
     Users.findOne({ email })
       .then(user => {
         if (user) {
@@ -76,7 +87,7 @@ const registerUser = (req, res) => {
                       });
                   }
                 )
-              });
+              })
           })
         })
       })
@@ -86,13 +97,13 @@ const loginUser = async (req, res) => {
 
   const{error} = loginValidation(req.body);
   if(error){
-    return res.status(400).send(error.details[0].message);
+    return res.status(400).json({msg: error.details[0].message});
   }
   const user = await Users.findOne({ email: req.body.email});
-  if(!user) return res.status(400).send('Email does not exist');
+  if(!user) return res.status(400).json({msg: 'Email or Password is incorrect'});
 
   const validPass = await bcrypt.compare(req.body.password, user.password);
-  if(!validPass) return res.status(400).send('Invalid password');
+  if(!validPass) return res.status(400).json({msg: 'Email or Password is incorrect'});
 
   const token = jwt.sign({id: user.id}, process.env.jwtSecret, { expiresIn: 3600});
 
@@ -100,7 +111,13 @@ const loginUser = async (req, res) => {
   //res.header('auth-token', token).send(token);
   res.json({
     token,
-    id: user.id
+    user: {
+      id: user.id,
+      username: user.username,
+      email:user.email,
+      firstname: user.firstname,
+      lastname: user.lastname
+    }
   });
   }
   catch (e) { throw e};
