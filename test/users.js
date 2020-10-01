@@ -174,10 +174,15 @@ chai.request(app)
         .post('/users/login')
         .send(loginUser)
         .end((err, res) => {
-            res.should.have.status(200);
-            res.body.should.be.a('object');
-            res.body.should.have.property('token');
-            res.body.should.have.property('id');
+          res.should.have.status(200);
+          res.body.should.be.a('object');
+          res.body.should.have.property('token');
+          res.body.should.have.property('user');
+          res.body.user.should.have.property('id');
+          res.body.user.should.have.property('username');
+          res.body.user.should.have.property('email');
+          res.body.user.should.have.property('firstname');
+          res.body.user.should.have.property('lastname');
 
           done();
         });

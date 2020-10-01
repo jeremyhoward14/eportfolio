@@ -111,7 +111,13 @@ const loginUser = async (req, res) => {
   //res.header('auth-token', token).send(token);
   res.json({
     token,
-    id: user.username
+    user: {
+      id: user.id,
+      username: user.username,
+      email:user.email,
+      firstname: user.firstname,
+      lastname: user.lastname
+    }
   });
   }
   catch (e) { throw e};
