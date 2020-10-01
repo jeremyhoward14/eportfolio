@@ -82,7 +82,8 @@ const registerUser = async (req, res) => {
                           username: user.username,
                           email:user.email,
                           firstname: user.firstname,
-                          lastname: user.lastname
+                          lastname: user.lastname,
+                          projects: user.projects
                         }
                       });
                   }
@@ -116,7 +117,8 @@ const loginUser = async (req, res) => {
       username: user.username,
       email:user.email,
       firstname: user.firstname,
-      lastname: user.lastname
+      lastname: user.lastname,
+      projects: user.projects
     }
   });
   }
