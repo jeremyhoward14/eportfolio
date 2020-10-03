@@ -31,6 +31,12 @@ const fileHandler = require("../controllers/files");
  *               type: string
  *             projectname:
  *               type: string
+ *       - in: path
+ *         name: projectid
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: project id
  *     produces:
  *       - application/json
  *     responses:
@@ -40,7 +46,7 @@ const fileHandler = require("../controllers/files");
  *         description: validation error
  *       
  */
-router.post("/projects/:projectid/upload", async (req, res) => fileHandler.uploadFile(req, res));
+router.post("/:projectid/upload", (req, res) => fileHandler.uploadFile(req, res));
 
 
 /**
