@@ -24,9 +24,15 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    bio: {
+        type: String,
+    },
     projects: [{
         title: String, 
-        text: String, 
+        text: String,
+        tags: [{
+            tag: String,
+        }],
         attachments: [{
             url: String,
         }],
