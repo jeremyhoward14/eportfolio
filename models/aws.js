@@ -137,10 +137,10 @@ function deleteFile(fileName, username, projectname, callback) {
     convert a username and projectname into a valid string to act as a foldername, and adds a '/'
 */
 function getFolderKey(username = undefined, projectname = undefined) {
-    if (folderName === undefined || projectname === undefined) {
+    if (username === undefined || projectname === undefined) {
         var folderKey = "tests/";
     } else {
-        var folderKey = encodeURIComponent(folderName) + "/" + encodeURIComponent(projectname) + "/";
+        var folderKey = encodeURIComponent(username) + "/" + encodeURIComponent(projectname) + "/";
     }
     return folderKey;
 }
@@ -156,3 +156,5 @@ module.exports = {
     uploadFile,
     deleteFile
 }
+
+// uploadFile("p.pdf", "greghouse", "tests", (err, data) => {console.log( data)});

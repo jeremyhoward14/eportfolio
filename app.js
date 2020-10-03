@@ -27,6 +27,7 @@ require("./models/db");
 //Set up the routes
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
+let filesRouter = require('./routes/files');
 let postRoute = require('./routes/posts');
 
 //Create the express app
@@ -58,6 +59,7 @@ app.use((req, res, next) => {
 //Handle the routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/projects', filesRouter);
 app.use('/posts', postRoute);
 
 //Create the route for the API route documentation
