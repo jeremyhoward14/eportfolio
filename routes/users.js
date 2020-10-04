@@ -17,6 +17,8 @@ const userController = require("../controllers/users");
  *     responses:
  *       200:
  *         description: An array of users and their respective details.
+ *       500:
+ *         description: No users were found.
  */
 router.get("/", (req, res) => userController.getAllUsers(req, res));
 
@@ -35,8 +37,8 @@ router.get("/", (req, res) => userController.getAllUsers(req, res));
  *     produces:
  *       - application/json
  *     responses:
- *       400:
- *         description: User does not exist
+ *       404:
+ *         description: User does not exist.
  *       200:
  *         description: A user array with their respective details.
  */

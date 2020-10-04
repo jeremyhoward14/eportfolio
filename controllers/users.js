@@ -7,8 +7,8 @@ const {registerValidation, loginValidation} = require('../validation');
 
 const getAllUsers = (req, res) => {
     Users.find({}, (findErr, data) => {
-      if (findErr == null) {  // indicates that no match was found
-        res.status(400).send("User does not exist");
+      if (findErr) {  // indicates that no matches were found
+        res.status(500).send("No users found");
       } else {
         res.send(data);
       }
@@ -18,8 +18,8 @@ const getAllUsers = (req, res) => {
 
 const getOneUser = (req, res) => {
     Users.findOne({ username: req.params.id }, (findErr, data) => {
-      if (findErr) {
-        res.status(500).send("Database error");
+      if (findErr || data == null) {  // indicates that specified user was not found
+        res.status(404).send("User not found");
       } else {
         res.send(data);
       }
