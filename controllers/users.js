@@ -7,8 +7,8 @@ const {registerValidation, loginValidation} = require('../validation');
 
 const getAllUsers = (req, res) => {
     Users.find({}, (findErr, data) => {
-      if (findErr) {
-        res.status(500).send("Database error");
+      if (findErr == null) {  // indicates that no match was found
+        res.status(400).send("User does not exist");
       } else {
         res.send(data);
       }
