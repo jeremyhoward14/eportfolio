@@ -35,8 +35,8 @@ router.get("/", (req, res) => userController.getAllUsers(req, res));
  *     produces:
  *       - application/json
  *     responses:
- *       400:
- *         description: User does not exist
+ *       404:
+ *         description: User does not exist.
  *       200:
  *         description: A user array with their respective details.
  */

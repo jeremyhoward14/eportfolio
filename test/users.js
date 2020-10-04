@@ -260,8 +260,8 @@ chai.request(app)
     chai.request(app)
     .get('/users/' + id)
     .end((err, res) => {
-        res.should.have.status(500);
-        res.text.should.be.eql('Database error');
+        res.should.have.status(404);
+        res.text.should.be.eql('User not found.');
       done();
     });
   });
