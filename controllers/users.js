@@ -21,8 +21,8 @@ const getOneUser = (req, res) => {
       .then(user => {
         if (user) {
           res.send(user);
-        } else{
-          res.status(500).send("Database error");
+        } else {
+          res.status(404).send("User not found.");
         }        
       })
 };
