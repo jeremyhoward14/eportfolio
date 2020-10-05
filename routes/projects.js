@@ -50,4 +50,7 @@ const projectController = require("../controllers/projects");
  */
 router.post("/create", (req, res) => projectController.createProject(req, res));
 
+
+router.post('/edit/:id', auth, async (req, res) => projectsController.editProject(req, res));
+
 module.exports = router;

@@ -70,8 +70,46 @@ const createProject = async (req, res) => {
     res.sendStatus(501);
 };
 
+const editProject = async (req, res) => {
+    //from the auth middleware, having jwt in header returns username
+  
+    //get user information from the username
+    const user = await Users.findOne({ username: req.user.username});
+    if(!user) return res.status(400).json({msg: 'Could not find username in database'});
+  
+    //loop through all projects, find specific project based off project-id
+    try{
+    for (const project of user.projects){
+      if(project.title == req.params.id){
+  
+        if(req.body.title != null){
+          project.title = req.body.title;
+        }
+        if(req.body.text != null){
+          project.text = req.body.text;
+        }  
+        if(req.body.attachments != null){
+          project.attachments = req.body.attachments;
+        }  
+        if(req.body.tags != null){
+          project.tags = req.body.tags;
+        }
+  
+        //save user to database
+        user.save()
+        return res.send(project);
+      }
+    };
+    return res.status(400).json({msg: 'Could not find specified project-id for user'});
+    }
+    catch(err){
+      return res.status(400).json({msg: 'Could not find specified project-id for user'});
+    }
+  
+  };
+
 module.exports = {
     createProject,
     // deleteProject,
-    // editProject
+    editProject
 }
