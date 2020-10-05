@@ -27,6 +27,8 @@ const auth = require('../middleware/auth')
  *             - text
  *             - tags
  *           properties:
+ *             username:
+ *               type: string
  *             projectname:
  *               type: string
  *             title:
@@ -103,5 +105,31 @@ router.post("/create", (req, res) => projectController.createProject(req, res));
  *       
  */
 router.post('/edit/:id', auth, async (req, res) => projectController.editProject(req, res));
+
+
+/**
+ * @swagger
+ * /projects/user:
+ *   get:
+ *     description: List all of the projects belonging to the logged in user.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: user's projects
+ *       500:
+ *         description: server error.
+ *       
+ */
+router.get('/user', auth, async (req, res) => projectController.loggedInUserProjects(req, res));
 
 module.exports = router;

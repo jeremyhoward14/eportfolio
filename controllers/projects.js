@@ -108,8 +108,18 @@ const editProject = async (req, res) => {
   
   };
 
+const loggedInUserProjects = async (req, res) => {
+  const user = await Users.findOne({ username: req.user.username});
+
+  if (!user) { // this looks for the logged in user, so it should always exist
+    return res.status(500).json({msg: 'database error: could not find user'});
+  }
+  return res.status(200).json(user.projects);
+}
+
 module.exports = {
     createProject,
     // deleteProject,
-    editProject
+    editProject,
+    loggedInUserProjects
 }
