@@ -5,6 +5,8 @@ var router = express.Router();
 //Require user controller
 const projectController = require("../controllers/projects");
 
+const auth = require('../middleware/auth')
+
 /**
  * @swagger
  * /projects/create:
