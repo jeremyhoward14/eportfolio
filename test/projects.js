@@ -22,11 +22,11 @@ describe('Projects', () => {
  describe('/POST update project for /projects/edit/{title}', () => {
   it('it should successfully update a specified title', (done) => {
     let registerUser = {
-      "username": "reg",
-      "email": "reg@gmail.com",
-      "password": "reg",
-      "firstname": "reg",
-      "lastname": "reg"
+      "username": "reg123",
+      "email": "reg123@gmail.com",
+      "password": "reg123",
+      "firstname": "reg123",
+      "lastname": "reg123"
     }
     let project = {
         "title": "project",
