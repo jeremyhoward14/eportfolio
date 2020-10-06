@@ -109,6 +109,38 @@ router.post('/edit/:id', auth, async (req, res) => projectController.editProject
 
 /**
  * @swagger
+ * /projects/delete/{title}:
+ *   post:
+ *     description: Delete a project
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: path
+ *         name: title
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: title of project
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Successfully deleted project: {name}.
+ *       404:
+ *         description: Could not find specified project-id for user.
+ *       
+ */
+router.post("/delete/:id", auth, (req, res) => projectController.deleteProject(req, res));
+
+
+/**
+ * @swagger
  * /projects/user:
  *   get:
  *     description: List all of the projects belonging to the logged in user.
