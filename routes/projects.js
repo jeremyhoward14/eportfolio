@@ -11,26 +11,26 @@ const auth = require('../middleware/auth')
  * @swagger
  * /projects/create:
  *   post:
- *     description: Create a new project
+ *     description: Create a new project for the logged in user
  *     consumes:
  *       - application/json
  *     parameters:
+*       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
  *       - in: body
  *         name: user
  *         description: The project to create.
  *         schema:
  *           type: object
  *           required:
- *             - username
- *             - projectname
  *             - title
  *             - text
  *             - tags
  *           properties:
- *             username:
- *               type: string
- *             projectname:
- *               type: string
  *             title:
  *               type: string
  *             text:
@@ -52,7 +52,7 @@ const auth = require('../middleware/auth')
  *         description: server error.
  *       
  */
-router.post("/create", (req, res) => projectController.createProject(req, res));
+router.post("/create", auth, (req, res) => projectController.createProject(req, res));
 
 /**
  * @swagger
