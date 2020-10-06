@@ -122,14 +122,14 @@ const getAllProjects = async (req, res) => {
      * `[].concat.apply([], listcomp)` and `listcomp.flat()` both turn an array of arrays into one
      * flat is neater but apparently it's newer, is that a concern?
      * https://stackoverflow.com/a/10865042
+     * edit: after some benchmarking, the concat function seems faster with random strings
      */
-    // var listcomp = users.map(user => {return user.projects;});
-    // return res.status(200).
-    // send([].concat.apply([], listcomp));
-    return res.status(200).send(
-      users.map( user => {
-        return user.projects;
-      }).flat(1))
+    // return res.status(200).send(
+    //   users.map( user => {
+    //     return user.projects;
+    //   }).flat(1))
+    var listcomp = users.map(user => {return user.projects;});
+    return res.status(200).send( [].concat.apply([], listcomp) );
   })
   .catch( err => {
     return res.status(500).json({msg: "Cannot connect to database."})
