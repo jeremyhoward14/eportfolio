@@ -112,6 +112,30 @@ const deleteProject = async (req, res) => {
 };
 
 
+/* get every project in the database 
+   - tested with users with no projects and differing lengths 
+ */
+const getAllProjects = async (req, res) => {
+  Users.find({})
+  .then( users => {
+    /* this bit does a list comprehension
+     * `[].concat.apply([], listcomp)` and `listcomp.flat()` both turn an array of arrays into one
+     * flat is neater but apparently it's newer, is that a concern?
+     * https://stackoverflow.com/a/10865042
+     */
+    // var listcomp = users.map(user => {return user.projects;});
+    // return res.status(200).
+    // send([].concat.apply([], listcomp));
+    return res.status(200).send(
+      users.map( user => {
+        return user.projects;
+      }).flat(1))
+  })
+  .catch( err => {
+    return res.status(500).json({msg: "Cannot connect to database."})
+  });
+}
+
 /* view all projects of a logged in user */
 const loggedInUserProjects = async (req, res) => {
   const user = await Users.findOne({ username: req.user.username});
@@ -126,5 +150,6 @@ module.exports = {
     createProject,
     deleteProject,
     editProject,
+    getAllProjects,
     loggedInUserProjects
 }
