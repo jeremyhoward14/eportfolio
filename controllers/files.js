@@ -1,5 +1,5 @@
-aws = require("../models/aws");
-db  = require("../controllers/users");
+const aws = require("../models/aws");
+const Users = require("../models/users");
 
 /*
  * upload a file to the aws servers, then add it to the mongo db database
@@ -11,35 +11,36 @@ const uploadFile = async (req, res) => {
     var filename = req.body.file;
     var projectname = req.params.projectid;
 
-    aws.uploadFile(filename, username, projectname, (err, url) => {
-        if (err) {
-            throw err;
-            // res.send(500).send("upload error");
-            // return
-        }
-
-        // upload to Mongo
-        // at the moment, projects haven't been set up so this can't do anything
-
-        var query = { username: username };
-
-        var updateDocument = {
-          $push: {"projects.$[project].attachments": url}  // maybe addToSet should be used instead?
-        };
-
-        // choose only the array matching the desired project
-        var options = {
-          arrayFilters: [{
-            "project.title" : projectname
-          }]
-        }
-
-        const user = Users.collection.updateOne(query, updateDocument, options);
-        console.log(user);
-
-        // // at this point, the URL should be added to the mongoDB
-        res.send(501);
-    })
+    // first, check if the project exists
+    Users.collection.findOne({username: username, "projects.title": { "$in": [projectname]} })
+    .then( async (project) => {
+        if (project) {
+            aws.uploadFile(filename, username, projectname, async (err, url) => {
+                if (err) { throw err; }
+        
+                // upload to Mongo
+                var query = { username: username };
+                var updateDocument = {
+                    $addToSet: {"projects.$[project].attachments": {url: url}}      // addToSet means that a url will be unique
+                };
+                // choose only the array matching the desired project
+                var options = {
+                    arrayFilters: [{
+                        "project.title" : projectname
+                    }]
+                }
+        
+                const user = await Users.collection.updateOne(query, updateDocument, options);
+                if (user == null){
+                    return res.status(500).json({msg:"Could not insert url into database."});
+                } else {
+                    return res.status(201).send(url);   // on success, send the url uploaded to
+                }
+            })
+    } else {
+        return res.status(404).json({msg:"Could not find specified project-id for user."});
+    }})
+    .catch(project => { return res.status(404).json({msg:"Could not find specified project-id for user."}); })
 };
 
 

@@ -43,13 +43,11 @@ const fileHandler = require("../controllers/files");
  *       - application/json
  *     responses:
  *       201:
- *         description: Returns URL the file was uploaded to (which has been submitted to mongodb)
- *       400:
- *         description: validation error.
+ *         description: Returns URL the file was uploaded to.
  *       404:
  *         description: Could not find specified project-id for user.
  *       500:
- *         description: Server error
+ *         description: Could not insert url into database.
  *       
  */
 router.post("/:projectid/upload", auth, async (req, res) => fileHandler.uploadFile(req, res));
