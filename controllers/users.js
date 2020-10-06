@@ -140,9 +140,31 @@ const getPublicUserObject = (user) => {
 }
 
 
+/* delete the logged in user, takes in JWT via auth */
+const deleteUser = async (req, res) => {
+  const user = await Users.findOne({username: req.user.username});
+  if (user == null) {
+    // user should have been found as it came from jwt, but worth checking
+    return res.status(500).json("Server error: could not find user.");
+  } else {
+    // delete all attachments related to the user's projects
+
+    // call whatever deleteFile / deleteProjectFiles function has been written
+
+    Users.collection.deleteOne({username: req.user.username})
+    .then(result => {
+      return res.status(200).json({msg: "sucessfully deleted user."});
+    })
+    .catch(result => {
+      return res.status(500).json({msg: result});
+    });
+  }
+};
+
 module.exports = {
     getAllUsers,
     getOneUser,
     registerUser,
     loginUser,
+    deleteUser
 };
