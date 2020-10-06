@@ -3,6 +3,8 @@ var express = require('express');
 //Create router
 var router = express.Router();
 
+const auth = require("../middleware/auth");
+
 // file handler
 const fileHandler = require("../controllers/files");
 
@@ -12,9 +14,21 @@ const fileHandler = require("../controllers/files");
  * @swagger
  * /projects/{projectid}/upload:
  *   post:
- *     description: Uploads supplied file to aws s3 server
+ *     description: Uploads supplied file to aws s3 server and attaches it to project
  *       - application/json
  *     parameters:
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *       - in: path
+ *         name: projectid
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: project id
  *       - in: body
  *         name: user
  *         description: The file to upload.
@@ -22,31 +36,23 @@ const fileHandler = require("../controllers/files");
  *           type: object
  *           required:
  *             - file
- *             - username
- *             - projectname
  *           properties:
- *             username:
- *               type: string
  *             file:
  *               type: string
- *             projectname:
- *               type: string
- *       - in: path
- *         name: projectid
- *         required: true
- *         type: string
- *         minimum: 1
- *         description: project id
  *     produces:
  *       - application/json
  *     responses:
  *       201:
- *         description: Returns URL the file was uploaded to (to be submitted to mongodb)
+ *         description: Returns URL the file was uploaded to (which has been submitted to mongodb)
  *       400:
- *         description: validation error
+ *         description: validation error.
+ *       404:
+ *         description: Could not find specified project-id for user.
+ *       500:
+ *         description: Server error
  *       
  */
-router.post("/:projectid/upload", (req, res) => fileHandler.uploadFile(req, res));
+router.post("/:projectid/upload", auth, (req, res) => fileHandler.uploadFile(req, res));
 
 
 /**
@@ -56,6 +62,18 @@ router.post("/:projectid/upload", (req, res) => fileHandler.uploadFile(req, res)
  *     description: Deletes file wiuth supplied name from aws s3 server
  *       - application/json
  *     parameters:
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *       - in: path
+ *         name: projectid
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: project id that the file belongs to
  *       - in: body
  *         name: user
  *         description: The filename to delete.
@@ -63,25 +81,23 @@ router.post("/:projectid/upload", (req, res) => fileHandler.uploadFile(req, res)
  *           type: object
  *           required:
  *             - filename
- *             - username
- *             - projectname
  *           properties:
- *             username:
- *               type: string
  *             filename:
- *               type: string
- *             projectname:
  *               type: string
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: File deleted successfully
+ *         description: File deleted successfully.
  *       400:
- *         description: validation error
+ *         description: validation error.
+ *       404:
+ *         description: Could not find specified project-id for user.
+ *       500:
+ *         description: Server error
  *       
  */
-router.post("/projects/:projectid/delete", async (req, res) => fileHandler.deleteFile(req, res));
+router.post("/:projectid/delete", auth, async (req, res) => fileHandler.deleteFile(req, res));
 
 
 module.exports = router;

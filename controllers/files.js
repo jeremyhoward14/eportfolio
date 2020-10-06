@@ -7,9 +7,9 @@ db  = require("../controllers/users");
  * For now, is taking in a filename only while waiting for the file-type selection to be implemented
  */
 const uploadFile = (req, res) => {
-    var username = req.body.username;
+    var username = req.user.username;   // from jwt
     var filename = req.body.file;
-    var projectname = req.body.projectname;
+    var projectname = req.params.projectid;
 
     aws.uploadFile(filename, username, projectname, (err, url) => {
         if (err) {
@@ -49,9 +49,9 @@ const uploadFile = (req, res) => {
  * Could this just be done with the URL instead?
  */
 const deleteFile = (req, res) => {
+    var username = req.user.username;   // from jwt
     var filename = req.body.filename;
-    var username = req.body.username;
-    var projectname = req.body.projectname;
+    var projectname = req.params.projectid;
 
     aws.deleteFile(filename, username, projectname, (err) => {
         if (err) {
