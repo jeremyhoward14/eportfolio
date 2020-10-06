@@ -38,7 +38,10 @@ const auth = require('../middleware/auth')
  *             tags:
  *               type: array
  *               items: 
- *                 type: string
+ *                 type: object
+ *                 properties:
+ *                   tag:
+ *                      type: string
  *     produces:
  *       - application/json
  *     responses:
@@ -92,7 +95,10 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  *             tags:
  *               type: array
  *               items: 
- *                 type: string
+ *                 type: object
+ *                 properties:
+ *                   tag:
+ *                      type: string
  *     produces:
  *       - application/json
  *     responses:
