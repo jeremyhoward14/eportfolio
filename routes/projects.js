@@ -22,7 +22,7 @@ const auth = require('../middleware/auth')
  *         minimum: 1
  *         description: jwt
  *       - in: body
- *         name: user
+ *         name: project
  *         description: The project to create.
  *         schema:
  *           type: object
@@ -78,8 +78,8 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  *         minimum: 1
  *         description: jwt
  *       - in: body
- *         name: user
- *         description: The project to create.
+ *         name: project
+ *         description: The project data to edit.
  *         schema:
  *           type: object
  *           required:
@@ -102,7 +102,7 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  *     produces:
  *       - application/json
  *     responses:
- *       201:
+ *       200:
  *         description: Updated project for user
  *       400:
  *         description: Could not find specified project-id for user
@@ -111,6 +111,38 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  *       
  */
 router.post('/edit/:id', auth, async (req, res) => projectController.editProject(req, res));
+
+
+/**
+ * @swagger
+ * /projects/delete/{title}:
+ *   post:
+ *     description: Delete a project
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: path
+ *         name: title
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: title of project
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Successfully deleted project.
+ *       404:
+ *         description: Could not find specified project-id for user.
+ *       
+ */
+router.post("/delete/:id", auth, (req, res) => projectController.deleteProject(req, res));
 
 
 /**
