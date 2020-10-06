@@ -28,6 +28,7 @@ require("./models/db");
 let indexRouter = require('./routes/index');
 let usersRouter = require('./routes/users');
 let postRoute = require('./routes/posts');
+let projectsRoute = require('./routes/projects');
 
 //Create the express app
 const app = express();
@@ -59,6 +60,7 @@ app.use((req, res, next) => {
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/posts', postRoute);
+app.use('/projects', projectsRoute);
 
 //Create the route for the API route documentation
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));

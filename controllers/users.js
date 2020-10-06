@@ -21,8 +21,8 @@ const getOneUser = (req, res) => {
       .then(user => {
         if (user) {
           res.send(user);
-        } else{
-          res.status(500).send("Database error");
+        } else {
+          res.status(404).send("User not found.");
         }        
       })
 };
@@ -70,7 +70,7 @@ const registerUser = async (req, res) => {
               .then(user => {
 
                 jwt.sign(
-                  { id: user.id },
+                  { username: user.username },
                   process.env.jwtSecret,
                   { expiresIn: 3600 },
                   (err, token) => {
@@ -82,7 +82,8 @@ const registerUser = async (req, res) => {
                           username: user.username,
                           email:user.email,
                           firstname: user.firstname,
-                          lastname: user.lastname
+                          lastname: user.lastname,
+                          projects: user.projects
                         }
                       });
                   }
@@ -105,7 +106,7 @@ const loginUser = async (req, res) => {
   const validPass = await bcrypt.compare(req.body.password, user.password);
   if(!validPass) return res.status(400).json({msg: 'Email or Password is incorrect'});
 
-  const token = jwt.sign({id: user.id}, process.env.jwtSecret, { expiresIn: 3600});
+  const token = jwt.sign({username: user.username}, process.env.jwtSecret, { expiresIn: 3600});
 
   try{
   //res.header('auth-token', token).send(token);
@@ -116,7 +117,8 @@ const loginUser = async (req, res) => {
       username: user.username,
       email:user.email,
       firstname: user.firstname,
-      lastname: user.lastname
+      lastname: user.lastname,
+      projects: user.projects
     }
   });
   }

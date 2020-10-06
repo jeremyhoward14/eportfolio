@@ -16,21 +16,6 @@ describe('Users', () => {
            done();
         });
     });
-/*
-  * Test the /GET route
-  */
-  describe('/GET users', () => {
-      it('it should GET all the Users', (done) => {
-        chai.request(app)
-            .get('/users')
-            .end((err, res) => {
-                  res.should.have.status(200);
-                  res.body.should.be.a('array');
-                  res.body.length.should.be.eql(0);
-              done();
-            });
-      });
-  });
 
   /*
   * Test the /POST route for registering
@@ -183,6 +168,7 @@ chai.request(app)
           res.body.user.should.have.property('email');
           res.body.user.should.have.property('firstname');
           res.body.user.should.have.property('lastname');
+          res.body.user.should.have.property('projects');
 
           done();
         });
@@ -274,10 +260,25 @@ chai.request(app)
     chai.request(app)
     .get('/users/' + id)
     .end((err, res) => {
-        res.should.have.status(500);
-        res.text.should.be.eql('Database error');
+        res.should.have.status(404);
+        res.text.should.be.eql('User not found.');
       done();
     });
+  });
+});
+/*
+  * Test the /GET route
+  */
+ describe('/GET users', () => {
+  it('it should GET all the Users', (done) => {
+    chai.request(app)
+        .get('/users')
+        .end((err, res) => {
+              res.should.have.status(200);
+              res.body.should.be.a('array');
+              res.body.length.should.be.eql(0);
+          done();
+        });
   });
 });
 
