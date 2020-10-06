@@ -12,7 +12,7 @@ const fileHandler = require("../controllers/files");
 
 /**
  * @swagger
- * /projects/{projectid}/upload:
+ * /files/{projectid}/upload:
  *   post:
  *     description: Uploads supplied file to aws s3 server and attaches it to project
  *       - application/json
@@ -52,12 +52,12 @@ const fileHandler = require("../controllers/files");
  *         description: Server error
  *       
  */
-router.post("/:projectid/upload", auth, (req, res) => fileHandler.uploadFile(req, res));
+router.post("/:projectid/upload", auth, async (req, res) => fileHandler.uploadFile(req, res));
 
 
 /**
  * @swagger
- * /projects/{projectid}/delete:
+ * /files/{projectid}/delete:
  *   post:
  *     description: Deletes file wiuth supplied name from aws s3 server
  *       - application/json

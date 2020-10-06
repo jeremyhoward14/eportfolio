@@ -38,7 +38,7 @@ const s3 = new AWS.S3();
         - err is null or contains the AWS error message
         - url wil hold the URL that the file was uploaded to
 */
-function uploadFile(filename, username, projectname, callback) {
+const uploadFile = async (filename, username, projectname, callback) => {
     fs.readFile(filename, (err, data) => {
         if (err) {
             callback(err, undefined);
@@ -120,7 +120,7 @@ function createFolder(folderName) {
 
     callback has 1 argument (err) that will contain the AWS error message
 */
-function deleteFile(fileName, username, projectname, callback) {
+const deleteFile = async (fileName, username, projectname, callback) => {
 
     var fileKey = getFolderKey(folderName) + encodeURIComponent(fileName);
 
@@ -131,7 +131,7 @@ function deleteFile(fileName, username, projectname, callback) {
         }
         callback(null);
     });
-}
+};
 
 /*
     convert a username and projectname into a valid string to act as a foldername, and adds a '/'

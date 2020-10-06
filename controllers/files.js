@@ -6,7 +6,7 @@ db  = require("../controllers/users");
  * 
  * For now, is taking in a filename only while waiting for the file-type selection to be implemented
  */
-const uploadFile = (req, res) => {
+const uploadFile = async (req, res) => {
     var username = req.user.username;   // from jwt
     var filename = req.body.file;
     var projectname = req.params.projectid;
@@ -21,23 +21,24 @@ const uploadFile = (req, res) => {
         // upload to Mongo
         // at the moment, projects haven't been set up so this can't do anything
 
-        // var query = { username: username };
-  
-        // var updateDocument = {
-        //   $push: {"projects.$[project].attachments": url}  // maybe addToSet should be used instead?
-        // };
-      
-        // // choose only the array matching the desired project
-        // var options = {
-        //   arrayFilters: [{
-        //     "project.title" : projectname
-        //   }]
-        // }
-        // var result = /*await*/ Users.collection.updateOne(query, updateDocument, options);
+        var query = { username: username };
+
+        var updateDocument = {
+          $push: {"projects.$[project].attachments": url}  // maybe addToSet should be used instead?
+        };
+
+        // choose only the array matching the desired project
+        var options = {
+          arrayFilters: [{
+            "project.title" : projectname
+          }]
+        }
+
+        const user = Users.collection.updateOne(query, updateDocument, options);
+        console.log(user);
 
         // // at this point, the URL should be added to the mongoDB
-        // // res.send(url);
-        res.send(200);
+        res.send(501);
     })
 };
 
@@ -48,7 +49,7 @@ const uploadFile = (req, res) => {
  * 
  * Could this just be done with the URL instead?
  */
-const deleteFile = (req, res) => {
+const deleteFile = async (req, res) => {
     var username = req.user.username;   // from jwt
     var filename = req.body.filename;
     var projectname = req.params.projectid;

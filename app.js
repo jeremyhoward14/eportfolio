@@ -60,7 +60,7 @@ app.use((req, res, next) => {
 //Handle the routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-app.use('/projects', filesRouter);
+app.use('/files', filesRouter);
 app.use('/posts', postRoute);
 app.use('/projects', projectsRoute);
 
