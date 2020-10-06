@@ -9,6 +9,7 @@ const createProject = async (req, res) => {
     var newProject = {
         title: title,
         text: text,
+        attachments: [],  // new project has no attachments
         tags: tags
     }
 
@@ -74,17 +75,14 @@ const editProject = async (req, res) => {
         }
         if(req.body.text != null){
           project.text = req.body.text;
-        }  
-        if(req.body.attachments != null){     // TODO: should this be doable with this call?
-          project.attachments = req.body.attachments;
-        }  
+        }
         if(req.body.tags != null){
           project.tags = req.body.tags;
         }
   
         //save user to database
         user.save()
-        return res.send(project);
+        return res.status(200).send(project);
       }
     };
     return res.status(400).json({msg: 'Could not find specified project-id for user'});
@@ -106,7 +104,7 @@ const deleteProject = async (req, res) => {
         search.projects = search.projects.filter( el => el.title !== title);
         search.save()
 
-        return res.status(200).json( {msg: 'Successfully deleted project: ' + title} );
+        return res.status(200).json( {msg: 'Successfully deleted project.'} );
     } else {
         // project does not exist
         return res.status(404).json( {msg: 'Could not find specified project-id for user.'} ); // we know the user should exist because it was passed in from jwt
