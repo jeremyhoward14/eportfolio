@@ -79,14 +79,14 @@ describe('Projects', () => {
   });
   it('it should not update project as user does not have that project', (done) => {
     let registerUser = {
-      "username": "reg",
-      "email": "reg@gmail.com",
-      "password": "reg",
-      "firstname": "reg",
-      "lastname": "reg"
+      "username": "reg2",
+      "email": "reg2@gmail.com",
+      "password": "reg2",
+      "firstname": "reg2",
+      "lastname": "reg2"
     }
     let project = {
-        "title": "project",
+        "title": "money makes the world go round",
         "text": "first project!!!",
         "tags": [
           {
