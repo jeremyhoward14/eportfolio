@@ -58,20 +58,31 @@ const createProject = async (req, res) => {
     )
 };
 
+/*
+ * edit a user project. Does not allow for the changing of the title to one that
+ * is already used by another project of the user, as title is the primary key.
+ */
 const editProject = async (req, res) => {
-    //from the auth middleware, having jwt in header returns username
-  
-    //get user information from the username
-    const user = await Users.findOne({ username: req.user.username});
-    if(!user) return res.status(400).json({msg: 'Could not find username in database'});
-  
-    //loop through all projects, find specific project based off project-id
-    try{
+  //from the auth middleware, having jwt in header returns username
+
+  //get user information from the username
+  const user = await Users.findOne({ username: req.user.username});
+  if(!user) return res.status(400).json({msg: 'Could not find username in database'});
+
+  //loop through all projects, find specific project based off project-id
+  try{
     for (const project of user.projects){
       if(project.title == req.params.id){
   
-        if(req.body.title != null){       // renaming, changes the primary key
-          project.title = req.body.title;
+        if(req.body.title != null){
+          // ensure that no other project has this title, or else we would get clashing PKs
+          // await because we want to check this one first
+          const search = await Users.findOne({"username": req.user.username, "projects.title": { "$in": [req.body.title]} })
+          if (search) {
+            return res.status(400).json({msg: "Cannot update project, as another project already has this title."});
+          } else {
+            project.title = req.body.title;
+          }
         }
         if(req.body.text != null){
           project.text = req.body.text;
@@ -86,12 +97,11 @@ const editProject = async (req, res) => {
       }
     };
     return res.status(400).json({msg: 'Could not find specified project-id for user'});
-    }
-    catch(err){
-      return res.status(400).json({msg: 'Could not find specified project-id for user'});
-    }
-  
-  };
+    
+  } catch(err){
+    return res.status(400).json({msg: 'Could not find specified project-id for user'});
+  }
+};
 
 
 const deleteProject = async (req, res) => {
