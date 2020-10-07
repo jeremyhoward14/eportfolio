@@ -49,7 +49,10 @@ const uploadFile = async (filename, username, projectname, callback) => {
         const params = {
             Bucket: process.env.AWS_BUCKET,
             Key: fileKey,
-            Body: JSON.stringify(data, null, 2)
+            Body: JSON.stringify(data, null, 2),
+            ContentType: getContentType(filename),  // this won't work if we are passing in the file as data??
+            ContentDisposition: 'inline',
+            ACL: 'public-read'
         };
         // s3.upload(params, function (s3Err, data) {
         //     if (s3Err) throw s3Err
@@ -146,6 +149,32 @@ function getFolderKey(username = undefined, projectname = undefined) {
 }
 
 /*
+ * Parse the extension of a file into one of the S3 metadata options.
+ * An extension that doesn't match returns "binary/octet", the default
+ */
+const getContentType = (filename) => {
+    extensions = [
+        {"ext": "pdf",  "type": "application/pdf"},
+        {"ext": "doc",  "type": "application/msword"},
+        {"ext": "docx", "type": "application/msword"},
+        {"ext": "jpeg", "type": "image/jpg"},
+        {"ext": "png",  "type": "image/png"},
+        {"ext": "gif",  "type": "image/gif"},
+        {"ext": "tiff", "type": "image/tiff"},
+        {"ext": "txt",  "type": "text/plain"},
+        {"ext": "rtf",  "type": "text/rtf"}
+    ]
+    // courtesy: https://stackoverflow.com/a/12900504
+    var extension = filename.slice((Math.max(0, filename.lastIndexOf(".")) || Infinity) + 1);
+    var found = extensions.find(elem => elem.ext === extension);
+    if (found)
+        return found.type;
+    else     // unsupported file type
+        return "binary/octet";
+}
+
+
+/*
     generate the url that a file will be saved to based on its fileKey
 */
 function getFileURL(fileKey) {
@@ -154,7 +183,8 @@ function getFileURL(fileKey) {
 
 module.exports = {
     uploadFile,
-    deleteFile
+    deleteFile,
+    getContentType
 }
 
 // uploadFile("p.pdf", "greghouse", "tests", (err, data) => {console.log( data)});
