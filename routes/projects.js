@@ -77,7 +77,10 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  * @swagger
  * /projects/edit/{title}:
  *   post:
- *     description: Update a project. Each field in the body is not required so can update single or multiple fields at a time.
+ *     description: Update a project. Each field in the body is not required so
+ *       can update single or multiple fields at a time. Doesn't allow for the 
+ *       changing of the title to one that is already used by another project of
+ *       the user, as title is the primary key.
  *     consumes:
  *       - application/json
  *     parameters:
