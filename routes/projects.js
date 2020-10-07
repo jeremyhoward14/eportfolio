@@ -9,6 +9,22 @@ const auth = require('../middleware/auth')
 
 /**
  * @swagger
+ * /projects:
+ *   get:
+ *     description: Returns all users.
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: An array containing all projects in the database
+ *       500:
+ *         description: Cannot connect to database.
+ */
+router.get("/", (req, res) => projectController.getAllProjects(req, res));
+
+
+/**
+ * @swagger
  * /projects/create:
  *   post:
  *     description: Create a new project for the logged in user
