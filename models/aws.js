@@ -135,9 +135,9 @@ const deleteFile = async (fileurl, callback) => {
     s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
         if (err) {
             callback(err.message);
-            return
+        } else {
+            callback(null);
         }
-        callback(null);
     });
 };
 

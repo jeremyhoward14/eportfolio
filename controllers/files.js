@@ -86,72 +86,37 @@ const deleteFile = async (req, res) => {
 };
 
 
+/* this is a function called by the backend by the projects.deleteProject route.
+ * The user is assumed to have already been verified by the JWT.
+ * callback conatins an error from AWS, or null
+ */
+const deleteProjectFiles = async (username, projecttitle, callback) => {
+    var error = null;   // lets us send error to callback only once
+    const search = await Users.findOne({"username": username, "projects.title": { "$in": [projecttitle]} })
+    if (search) {
+        // find the relevant project
+        for (var p of search.projects) {
+            if (p.title === projecttitle) {
 
+                // delete all attachments in the folder from aws
+                if (p.attachments) {
+                    for (var u of p.attachments) {
 
-/* if I put the Mongo stuff back into functions, use this. Delete functionality is below */
+                        aws.deleteFile(u.url, (err) => {
+                            if (err) {
+                                error = err;
+                            }
+                        })
+                        if (error) break;
+                    }
+                    // no error if there were no attachments
+                }
+            }
+        }
+    }
+    callback(error);
+}
 
-// /* 
-//  * update the attachments for a given user and add the given url
-//  * res:
-//  *  - username: user uploading
-//  *  - projectTitle: title of the project
-//  *  - url: the newly added link
-//  * 
-//  * https://docs.mongodb.com/drivers/node/fundamentals/crud/write-operations/embedded-arrays
-//  */
-// const addUserAttachment = (req, res) => {
-//     // var query = { username: req.body.username, "projects.title": req.body.projectTitle};
-//     // var updateDocument = {
-//     //   $set: {"projects.$.attachments": null }
-//     // }
-//     // var result = await collection.updateOne(query, updateDocument);
-  
-
-  
-//     //res.send(200) ?
-//   };
-  
-  
-//   /* 
-//    * update the attachments for a given user and delete the given url
-//    * res:
-//    *  - username: user uploading
-//    *  - projectTitle: title of the project
-//    *  - url: the newly added link
-//    * 
-//    * https://docs.mongodb.com/drivers/node/fundamentals/crud/write-operations/embedded-arrays
-//    */
-//   const removeUserAttachment = (req, res) => {
-//     var query = { username: req.body.username };
-  
-//     var updateDocument = {
-//       $pull: {"projects.$[project].attachments": req.body.url}    // this could work but I have no idea
-//     };
-  
-//     // choose only the array matching the desired project
-//     var options = {
-//       arrayFilters: [{
-//         "project.title" : req.body.projectTitle
-//       }]
-//     }
-//     var result = /*await*/ Users.collection.updateOne(query, updateDocument, options);
-  
-//     // OR
-  
-//     // https://stackoverflow.com/questions/55738068/remove-element-in-array-by-value-mongodb-nodejs
-//     //  but I think that deletes the attachments array or something?
-//     // Users.collection.updateOne(
-//     //   { username: req.body.username }, 
-//     //   { $pull: 
-//     //     { projects: 
-//     //       { attachments: req.body.url }
-//     //     }
-//     //   }
-//     // );
-  
-//     //res.send(200) ?
-//   };
-  
 
 module.exports = {
     uploadFile,

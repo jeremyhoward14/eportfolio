@@ -102,16 +102,21 @@ const deleteProject = async (req, res) => {
     // see if the user has a project by that title
     const search = await Users.findOne({"username": username, "projects.title": { "$in": [title]} })
     if (search) {     // remove it     
-        search.projects = search.projects.filter( el => el.title !== title);
-        search.save()
+        FileHandler.deleteProjectFiles(username, title, (err) => {
+          if (err) {
+            return res.status(500).json({msg: "could not delete project files"});
+          } else {
+            search.projects = search.projects.filter( el => el.title !== title);
+            search.save()
+            return res.status(200).json( {msg: 'Successfully deleted project.'} );
+          }
+        })
 
-        return res.status(200).json( {msg: 'Successfully deleted project.'} );
     } else {
         // project does not exist
         return res.status(404).json( {msg: 'Could not find specified project-id for user.'} ); // we know the user should exist because it was passed in from jwt
     }
 };
-
 
 /* view all projects of a logged in user */
 const loggedInUserProjects = async (req, res) => {
