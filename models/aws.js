@@ -49,9 +49,12 @@ const uploadFile = async (filename, username, projectname, callback) => {
         const params = {
             Bucket: process.env.AWS_BUCKET,
             Key: fileKey,
-            Body: JSON.stringify(data, null, 2),
+            Body: data,
             ContentType: getContentType(filename),  // this won't work if we are passing in the file as data??
-            ContentDisposition: 'inline',
+            // inline type lets file be displayed in-browser
+            ContentDisposition: "inline",
+            // content type to force later download: http://iwantmyreal.name/s3-download-only-presigned-upload
+            // ContentDisposition: "attachment; filename=\"" + filename + "\"",
             ACL: 'public-read'
         };
         // s3.upload(params, function (s3Err, data) {
@@ -175,6 +178,7 @@ const getContentType = (filename) => {
     if (found)
         return found.type;
     else     // unsupported file type
+        return "application/octet-stream";
         return "binary/octet";
 }
 
