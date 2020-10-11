@@ -123,9 +123,11 @@ function createFolder(folderName) {
 
     callback has 1 argument (err) that will contain the AWS error message
 */
-const deleteFile = async (fileName, username, projectname, callback) => {
+const deleteFile = async (fileurl, callback) => {
 
-    var fileKey = getFolderKey(folderName) + encodeURIComponent(fileName);
+    // get the filekey from the input url
+    var starter = "https://" + process.env.AWS_BUCKET + ".s3." + process.env.AWS_REGION + ".amazonaws.com/";
+    var fileKey = fileurl.replace(starter, '');    
 
     s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
         if (err) {

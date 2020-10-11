@@ -48,19 +48,37 @@ const uploadFile = async (req, res) => {
 /*
  * delete a file from the aws servers, then remove it from the mongo db database
  * 
- * Could this just be done with the URL instead?
+ * File comes in the form of its url as stored in mongo
  */
 const deleteFile = async (req, res) => {
     var username = req.user.username;   // from jwt
-    var filename = req.body.filename;
-    var projectname = req.params.projectid;
+    var fileurl = req.body.fileurl;
+    var title = req.params.projectid;
 
-    aws.deleteFile(filename, username, projectname, (err) => {
+    // should we check that the file exists for the user?
+    // I think we can get away with not doing it, because aws will just throw and error instead
+
+    aws.deleteFile(fileurl, (err) => {
         if (err) {
-            res.send(500).send("error deleting file");
+            res.status(500).json({msg: "error deleting file"});
         } else {
-            // at this point we should remove the link from the mongoDB
-            res.send(200);
+            // file successfully deleted, remove the link from mongoDB
+            const search = await Users.findOne({"username": username, "projects.title": { "$in": [title]} })
+            if (search) {     // remove it
+                // find the project with the title, and remove the url from the list
+                for (var p of search.projects) {
+                    if (p.title === title) {
+                        p.attachments = p.attachments.filter( el => el.url !== fileurl);
+                    }
+                }
+
+                search.save()
+                res.status(200).json({msg:"Successfully deleted file"});
+
+            } else {
+                // TODO this means that the file was deleted from aws but not mongo, what do we want to do??
+                return res.status(404).json({msg:"Could not find specified project-id for user."});
+            }
         }
     })
 };
