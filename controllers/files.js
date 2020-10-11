@@ -57,28 +57,30 @@ const deleteFile = async (req, res) => {
 
     // should we check that the file exists for the user?
     // I think we can get away with not doing it, because aws will just throw and error instead
-
     aws.deleteFile(fileurl, (err) => {
         if (err) {
             res.status(500).json({msg: "error deleting file"});
         } else {
             // file successfully deleted, remove the link from mongoDB
-            const search = await Users.findOne({"username": username, "projects.title": { "$in": [title]} })
-            if (search) {     // remove it
-                // find the project with the title, and remove the url from the list
-                for (var p of search.projects) {
-                    if (p.title === title) {
-                        p.attachments = p.attachments.filter( el => el.url !== fileurl);
+            Users.findOne({"username": username, "projects.title": { "$in": [title]} })
+            .then( (search) => {
+                if (search) {     // remove it
+                    // find the project with the title, and remove the url from the list
+                    for (var p of search.projects) {
+                        if (p.title === title) {
+                            p.attachments = p.attachments.filter( el => el.url !== fileurl);
+                        }
                     }
+
+                    search.save()
+                    res.status(200).json({msg:"Successfully deleted file"});
+            
+                } else {
+                    // TODO this means that the file was deleted from aws but not mongo, what do we want to do??
+                    return res.status(404).json({msg:"Could not find specified project-id for user."});
                 }
-
-                search.save()
-                res.status(200).json({msg:"Successfully deleted file"});
-
-            } else {
-                // TODO this means that the file was deleted from aws but not mongo, what do we want to do??
-                return res.status(404).json({msg:"Could not find specified project-id for user."});
-            }
+            })
+            .catch( (search) => es.status(404).json({msg:"Could not find specified project-id for user."}));
         }
     })
 };
@@ -154,4 +156,5 @@ const deleteFile = async (req, res) => {
 module.exports = {
     uploadFile,
     deleteFile,
+    deleteProjectFiles
 }

@@ -66,7 +66,7 @@ const uploadFile = async (filename, username, projectname, callback) => {
         promise.then(
             function (data) {
                 // console.log(`Successfully uploaded file: ${data.Location}`);
-                callback(null, getFileURL(fileKey));
+                callback(null, data.Location);
             },
             function (err) {
                 // console.log("Error uploading file: " + err.message);
@@ -126,8 +126,11 @@ function createFolder(folderName) {
 const deleteFile = async (fileurl, callback) => {
 
     // get the filekey from the input url
-    var starter = "https://" + process.env.AWS_BUCKET + ".s3." + process.env.AWS_REGION + ".amazonaws.com/";
-    var fileKey = fileurl.replace(starter, '');    
+    // url should be starter2 beased on all documentation, but the actual files are on starter1??
+    var starter1 = "https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/";
+    var starter2 = "https://circlespace-uploads.s3.ap-southeast-2.amazonaws.com/";
+    var fileKey = fileurl.replace(starter1, '');
+    var fileKey = fileurl.replace(starter2, '');
 
     s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
         if (err) {
