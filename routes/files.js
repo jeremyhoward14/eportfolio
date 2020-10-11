@@ -74,11 +74,11 @@ router.post("/:projectid/upload", auth, async (req, res) => fileHandler.uploadFi
  *         description: project id that the file belongs to
  *       - in: body
  *         name: user
- *         description: The filename to delete.
+ *         description: The file url to delete (from project attachments)
  *         schema:
  *           type: object
  *           required:
- *             - filename
+ *             - fileurl
  *           properties:
  *             filename:
  *               type: string
