@@ -93,14 +93,7 @@ const verifyProjectExists = require("../middleware/verifyProjectExists");
  *         description: Could not insert url into database.
  *       
  */
-router.post("/:projectid/multerUpload", auth, verifyProjectExists, awsAdaptor.uploadMulter.single('userFile'),
-    (req, res, next) => {
-        res.json({msg: "uploaded file to " + req.file.location}).status(200);
-        // at this point, upload to mongo
-    }
-);
-// route plan:
-//router.post("/:projectid/multerUpload", auth, projectVerifier, <awshandler. or middleware>uploadMulter.single('userFile'), <fileHandler or projectHandler>.addFile(req, res));
+router.post("/:projectid/multerUpload", auth, verifyProjectExists, awsAdaptor.uploadMulter.single('userFile'), (req, res) => fileHandler.uploadFileMongo(req, res));
 
 
 /**

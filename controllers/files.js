@@ -44,6 +44,42 @@ const uploadFile = async (req, res) => {
 };
 
 
+/*
+ * Upload the url for the uploaded file to MongoDB.
+ * called via the upload route. First the projectVerifyExists middleware verifies that our target
+ * project exists, so we know that we'll be able to find it. Then multer uploads to iso S3. This
+ * then uploads the resultant link stored in req.file.locaiton to mongo.
+ */
+const uploadFileMongo = async (req, res) => {
+    var username = req.user.username;
+    var projectname = req.params.projectid;
+    var url = req.file.location;
+
+    // upload to Mongo
+    var query = { username: username };
+    var updateDocument = {
+        $addToSet: {"projects.$[project].attachments": {url: url}}      // addToSet means that a url will be unique
+    };
+    // choose only the array matching the desired project
+    var options = {
+        arrayFilters: [{
+            "project.title" : projectname
+        }]
+    }
+
+    Users.collection.updateOne(query, updateDocument, options)
+    .then( (user) => {
+        if (user){
+            return res.status(201).send(url);
+        } else {
+            // Somehow the user/project got deleted, shouldn't happen. I guess we don't delete from aws here
+            return res.status(500).json({msg:"Could not insert url into database."});
+        }
+    })
+    .catch( (err) => {return res.status(500).json({msg:"Could not insert url into database."});});
+   
+};
+
 
 /*
  * delete a file from the aws servers, then remove it from the mongo db database
@@ -120,6 +156,7 @@ const deleteProjectFiles = async (username, projecttitle, callback) => {
 
 module.exports = {
     uploadFile,
+    uploadFileMongo,
     deleteFile,
     deleteProjectFiles
 }
