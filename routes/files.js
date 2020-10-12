@@ -52,13 +52,13 @@ const fileHandler = require("../controllers/files");
  */
 router.post("/:projectid/upload", auth, async (req, res) => fileHandler.uploadFile(req, res));
 
-var awshandler = require("../models/aws");
+const awsAdaptor = require("../models/aws");
 const verifyProjectExists = require("../middleware/verifyProjectExists");
 /**
  * @swagger
  * /files/{projectid}/multerUpload:
  *   post:
- *     description: Uploads incoming file to aws s3 server and attaches it to project
+ *     description: Uploads incoming file to aws s3 server and attaches it to project. File comes in as binary data. (Note that it seems to be easy to test this with PostMan, but I can't figure out how to upload the actual file to swagger)
  *       - application/json
  *     requestBody:
  *       content:
@@ -82,16 +82,6 @@ const verifyProjectExists = require("../middleware/verifyProjectExists");
  *         type: string
  *         minimum: 1
  *         description: project id
- *       - in: body
- *         name: user
- *         description: The file to upload.
- *         schema:
- *           type: object
- *           required:
- *             - file
- *           properties:
- *             file:
- *               type: string
  *     produces:
  *       - application/json
  *     responses:
@@ -103,7 +93,7 @@ const verifyProjectExists = require("../middleware/verifyProjectExists");
  *         description: Could not insert url into database.
  *       
  */
-router.post("/:projectid/multerUpload", auth, verifyProjectExists, awshandler.uploadMulter.single('userFile'),
+router.post("/:projectid/multerUpload", auth, verifyProjectExists, awsAdaptor.uploadMulter.single('userFile'),
     (req, res, next) => {
         res.json({msg: "uploaded file to " + req.file.location}).status(200);
         // at this point, upload to mongo
@@ -111,13 +101,6 @@ router.post("/:projectid/multerUpload", auth, verifyProjectExists, awshandler.up
 );
 // route plan:
 //router.post("/:projectid/multerUpload", auth, projectVerifier, <awshandler. or middleware>uploadMulter.single('userFile'), <fileHandler or projectHandler>.addFile(req, res));
-
-// I BELIEVE THE CLIENT __MUST__ MATCH `.single('userFile')` WITH SOMETHING LIKE:
-// var theinput = document.getElementById('myfileinput')
-// var data = new FormData()
-// data.append('myfile',theinput.files[0])
-// fetch( "/upload", { method:"POST", body:data } )
-// https://stackoverflow.com/questions/31530200/node-multer-unexpected-field
 
 
 /**

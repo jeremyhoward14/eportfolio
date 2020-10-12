@@ -1,7 +1,7 @@
 // projects middleware
 // verifies that a user (verified via JWT auth) has the project given by req.params.projectid
 
-Users = require("../models/users")
+const Users = require("../models/users")
 
 function verifyProjectExists(req, res, next) {
     Users.collection.findOne({username: req.user.username, "projects.title": { "$in": [req.params.projectid]} })

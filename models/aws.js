@@ -193,6 +193,19 @@ function getFileURL(fileKey) {
 }
 
 
+/* 
+ * Multer middleware to upload a document to AWS-S3
+ *
+ * I believe the client MUST match the route call of `uploadMulter.single('userFile')` with something like:
+ * var theinput = document.getElementById('myfileinput')
+ * var data = new FormData()
+ * data.append('myfile',theinput.files[0])
+ * fetch( "/upload", { method:"POST", body:data } )
+ * https://stackoverflow.com/questions/31530200/node-multer-unexpected-field
+ *
+ * username comes via auth of JWT
+ * projectid is via the parameters of the route
+ */
 const uploadMulter = multer({
     storage: multerS3({
         s3: s3,
@@ -216,5 +229,3 @@ module.exports = {
     getContentType,
     uploadMulter
 }
-
-// uploadFile("p.pdf", "greghouse", "tests", (err, data) => {console.log( data)});
