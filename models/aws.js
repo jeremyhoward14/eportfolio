@@ -130,6 +130,11 @@ function createFolder(folderName) {
 */
 const deleteFile = async (fileurl, callback) => {
 
+    if (!fileurl) {
+        callback({err: "file does not exist"});
+        return;
+    }
+
     // get the filekey from the input url
     // url should be starter2 beased on all documentation, but the actual files are on starter1??
     var starter1 = "https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/";
@@ -212,7 +217,6 @@ const uploadMulter = multer({
         bucket: process.env.AWS_BUCKET,
         key: function (req, file, cb){
             var filekey = getFolderKey(req.user.username, req.params.projectid) + file.originalname;
-            console.log(filekey)
             cb(null, filekey);
         },
         contentType: function (req, file, cb) {
