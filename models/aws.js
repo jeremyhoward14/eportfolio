@@ -1,6 +1,8 @@
 require('dotenv').config();
 const fs = require('fs');
 const AWS = require('aws-sdk');
+const multer = require("multer");
+const multerS3 = require("multer-s3");
 
 // update the AWS config
 AWS.config = new AWS.Config();
@@ -190,10 +192,29 @@ function getFileURL(fileKey) {
     return "https://" + process.env.AWS_BUCKET + ".s3." + process.env.AWS_REGION + ".amazonaws.com/" + fileKey
 }
 
+
+const uploadMulter = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: process.env.AWS_BUCKET,
+        key: function (req, file, cb){
+            var filekey = getFolderKey(req.user.username, req.params.projectid) + file.originalname;
+            console.log(filekey)
+            cb(null, filekey);
+        },
+        contentType: function (req, file, cb) {
+            cb(null, getContentType(file.originalname));
+        },
+        contentDisposition: "inline",
+        acl: 'public-read'
+   }) 
+});
+
 module.exports = {
     uploadFile,
     deleteFile,
-    getContentType
+    getContentType,
+    uploadMulter
 }
 
 // uploadFile("p.pdf", "greghouse", "tests", (err, data) => {console.log( data)});
