@@ -53,6 +53,7 @@ const fileHandler = require("../controllers/files");
 router.post("/:projectid/upload", auth, async (req, res) => fileHandler.uploadFile(req, res));
 
 var awshandler = require("../models/aws");
+const verifyProjectExists = require("../middleware/verifyProjectExists");
 /**
  * @swagger
  * /files/{projectid}/multerUpload:
@@ -102,7 +103,7 @@ var awshandler = require("../models/aws");
  *         description: Could not insert url into database.
  *       
  */
-router.post("/:projectid/multerUpload", auth, awshandler.uploadMulter.single('userFile'),
+router.post("/:projectid/multerUpload", auth, verifyProjectExists, awshandler.uploadMulter.single('userFile'),
     (req, res, next) => {
         res.json({msg: "uploaded file to " + req.file.location}).status(200);
         // at this point, upload to mongo
