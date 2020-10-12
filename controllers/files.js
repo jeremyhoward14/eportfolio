@@ -116,7 +116,7 @@ const deleteFile = async (req, res) => {
                     return res.status(404).json({msg:"Could not find specified project-id for user."});
                 }
             })
-            .catch( (search) => es.status(404).json({msg:"Could not find specified project-id for user."}));
+            .catch( (search) => res.status(404).json({msg:"Could not find specified project-id for user."}));
         }
     })
 };
@@ -149,6 +149,8 @@ const deleteProjectFiles = async (username, projecttitle, callback) => {
                 }
             }
         }
+    } else {
+        error = {msg:"Could not find specified project-id for user."};
     }
     callback(error);
 }
