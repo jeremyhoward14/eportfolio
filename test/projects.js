@@ -275,7 +275,7 @@ describe('/POST update project for /projects/delete/{title}', () => {
         });
       }) 
   });
-  it('it should successfully delete a specific project', (done) => {
+  it('it should not delete a specific project if project is not in user', (done) => {
     let registerUser = {
       "username": "regfailDeleteProject",
       "email": "regfailDeleteProject@gmail.com",
@@ -376,7 +376,7 @@ describe('/POST update project for /projects/delete/{title}', () => {
           .end((err, res) => {
             res.should.have.status(200);
             res.body.should.be.a('array');
-  
+            done();
             
           });          
         });
