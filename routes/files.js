@@ -60,15 +60,6 @@ const verifyProjectExists = require("../middleware/verifyProjectExists");
  *   post:
  *     description: Uploads incoming file to aws s3 server and attaches it to project. File comes in as binary data. (Note that it seems to be easy to test this with PostMan, but I can't figure out how to upload the actual file to swagger)
  *       - application/json
- *     requestBody:
- *       content:
- *         application/octet-stream:
- *           schema:
- *             type: object
- *             properties:
- *             file:
- *               type: string
- *               format: binary
  *     parameters:
  *       - in: header
  *         name: x-auth-token
@@ -82,6 +73,10 @@ const verifyProjectExists = require("../middleware/verifyProjectExists");
  *         type: string
  *         minimum: 1
  *         description: project id
+ *       - in: formData
+ *         name: userFile
+ *         type: file
+ *         description: The file to upload.
  *     produces:
  *       - application/json
  *     responses:
@@ -116,14 +111,14 @@ router.post("/:projectid/multerUpload", auth, verifyProjectExists, awsAdaptor.up
  *         minimum: 1
  *         description: project id that the file belongs to
  *       - in: body
- *         name: user
+ *         name: fileurl
  *         description: The file url to delete (from project attachments)
  *         schema:
  *           type: object
  *           required:
  *             - fileurl
  *           properties:
- *             filename:
+ *             fileurl:
  *               type: string
  *     produces:
  *       - application/json
