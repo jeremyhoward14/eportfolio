@@ -11,7 +11,7 @@ const auth = require('../middleware/auth')
  * @swagger
  * /projects:
  *   get:
- *     description: Returns all users.
+ *     description: Returns all projects in the database.
  *     produces:
  *       - application/json
  *     responses:
@@ -136,7 +136,7 @@ router.post('/edit/:id', auth, async (req, res) => projectController.editProject
  * @swagger
  * /projects/delete/{title}:
  *   post:
- *     description: Delete a project
+ *     description: Delete a project belonging to the loged in user
  *     consumes:
  *       - application/json
  *     parameters:
