@@ -28,105 +28,40 @@ AWS.config.region = 'ap-southeast-2';
 
 const s3 = new AWS.S3();
 
-/* 
-    upload a file given by filename to AWS S3
-    if foldername is not speicifed, uploads to the tests/ folder
-
-    folder scheme follows "/username/projectname/file"
-
-    returns the url the file was uploaded to, to be inserted into the mongo db
-
-    callback has 2 arguments (err, url)
-        - err is null or contains the AWS error message
-        - url wil hold the URL that the file was uploaded to
-*/
-const uploadFile = async (filename, username, projectname, callback) => {
-    fs.readFile(filename, (err, data) => {
-        if (err) {
-            callback(err, undefined);
-        }
-
-        var fileKey = getFolderKey(username, projectname) + encodeURIComponent(filename);
-
-        const params = {
-            Bucket: process.env.AWS_BUCKET,
-            Key: fileKey,
-            Body: data,
-            ContentType: getContentType(filename),  // this won't work if we are passing in the file as data??
-            // inline type lets file be displayed in-browser
-            ContentDisposition: "inline",
-            // content type to force later download: http://iwantmyreal.name/s3-download-only-presigned-upload
-            // ContentDisposition: "attachment; filename=\"" + filename + "\"",
-            ACL: 'public-read'
-        };
-        // s3.upload(params, function (s3Err, data) {
-        //     if (s3Err) throw s3Err
-        //     console.log(`File uploaded successfully at ${data.Location}`);
-        // });
-
-        var upload = new AWS.S3.ManagedUpload({params});
-
-        var promise = upload.promise();
-
-        promise.then(
-            function (data) {
-                // console.log(`Successfully uploaded file: ${data.Location}`);
-                callback(null, data.Location);
-            },
-            function (err) {
-                // console.log("Error uploading file: " + err.message);
-                callback(err.message, undefined);
-                return
-            }
-        );
-    });
-};
-
-
-/*
-    creates a folder on AWS S3
-    This could either be used to create folders for individual users, or for 
-    users to be able to create their own folders (or both)
-*/
-function createFolder(folderName) {
-    folderName = folderName.trim();
-    if (!folderName) {
-        console.log("Folder names must contain at least one non-space character.");
-        return
-    }
-    if (folderName.includes('/')) {
-        console.log("Folder names cannot contain slashes.");
-        return
-    }
-
-    // here we don't use getFolderKey as that adds a '/'
-    var folderKey = encodeURIComponent(folderName);
-
-    s3.headObject({ Key: folderKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
-        if (!err) {
-            console.log("Folder already exists.");
-            return
-        }
-        if (err.code !== "NotFound") {
-            console.log("There was an error creating folder: " + err.message);
-            return
-        }
-        s3.putObject({ Key: folderKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
-            if (err) {
-                console.log("There was an error creating folder: " + err.message);
-                return
-            }
-            console.log("Successfully created folder: " + folderKey);
-        });
-    });
-}
-
 
 /* 
-    delete a file given by filename from AWS S3
-    if foldername is not speicifed, deletes from the tests/ folder
+ * Multer middleware to upload a document to AWS-S3. The standard upload function
+ *
+ * I believe the client MUST match the route call of `uploadMulter.single('userFile')` with something like:
+ * var theinput = document.getElementById('myfileinput')
+ * var data = new FormData()
+ * data.append('myfile',theinput.files[0])
+ * fetch( "/upload", { method:"POST", body:data } )
+ * https://stackoverflow.com/questions/31530200/node-multer-unexpected-field
+ *
+ * username comes via auth of JWT
+ * projectid is via the parameters of the route
+ */
+const uploadFile = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: process.env.AWS_BUCKET,
+        key: function (req, file, cb){
+            var filekey = getFolderKey(req.user.username, req.params.projectid) + file.originalname;
+            cb(null, filekey);
+        },
+        contentType: function (req, file, cb) {
+            cb(null, getContentType(file.originalname));
+        },
+        contentDisposition: "inline",
+        acl: 'public-read'
+   }) 
+});
 
-    callback has 1 argument (err) that will contain the AWS error message
+/* 
+ * delete a file given by url from AWS S3
+ *
+ * callback has 1 argument (err) that will contain the AWS error message
 */
 const deleteFile = async (fileurl, callback) => {
 
@@ -152,8 +87,9 @@ const deleteFile = async (fileurl, callback) => {
 };
 
 /*
-    convert a username and projectname into a valid string to act as a foldername, and adds a '/'
-*/
+ * convert a username and projectname into a valid string to act as a foldername, and adds a '/'
+ * folder scheme follows "/username/projectname/file"
+ */
 function getFolderKey(username = undefined, projectname = undefined) {
     if (username === undefined || projectname === undefined) {
         var folderKey = "tests/";
@@ -190,46 +126,105 @@ const getContentType = (filename) => {
 }
 
 
-/*
-    generate the url that a file will be saved to based on its fileKey
+/* * * * DEPRECATED FUNCTIONS * * * */
+
+/* 
+ * @deprecated
+ * upload a file to AWS S3, given by the filename of the local file on disk.
+ *
+ * callback has 2 arguments (err, url)
+ *     - err is null or contains the AWS error message
+ *     - url wil hold the URL that the file was uploaded to
 */
+const uploadFileLocal = async (filename, username, projectname, callback) => {
+    fs.readFile(filename, (err, data) => {
+        if (err) {
+            callback(err, undefined);
+        }
+
+        var fileKey = getFolderKey(username, projectname) + encodeURIComponent(filename);
+
+        const params = {
+            Bucket: process.env.AWS_BUCKET,
+            Key: fileKey,
+            Body: data,
+            ContentType: getContentType(filename),  // this won't work if we are passing in the file as data??
+            // inline type lets file be displayed in-browser
+            ContentDisposition: "inline",
+            // content type to force later download: http://iwantmyreal.name/s3-download-only-presigned-upload
+            // ContentDisposition: "attachment; filename=\"" + filename + "\"",
+            ACL: 'public-read'
+        };
+        // s3.upload(params, function (s3Err, data) {
+        //     if (s3Err) throw s3Err
+        //     console.log(`File uploaded successfully at ${data.Location}`);
+        // });
+
+        var upload = new AWS.S3.ManagedUpload({params}).promise()
+        .then(
+            function (data) {
+                // console.log(`Successfully uploaded file: ${data.Location}`);
+                callback(null, data.Location);
+            },
+            function (err) {
+                // console.log("Error uploading file: " + err.message);
+                callback(err.message, undefined);
+                return
+            }
+        );
+    });
+};
+
+/* 
+ * @deprecated: unnecessary with multer
+ * generate the url that a file will be saved to based on its fileKey
+ */
 function getFileURL(fileKey) {
     return "https://" + process.env.AWS_BUCKET + ".s3." + process.env.AWS_REGION + ".amazonaws.com/" + fileKey
 }
 
+/*
+ * @deprectated: unnecessary
+ * creates a folder on AWS S3
+ * This could either be used to create folders for individual users, or for 
+ * users to be able to create their own folders (or both)
+*/
+function createFolder(folderName) {
+    folderName = folderName.trim();
+    if (!folderName) {
+        console.log("Folder names must contain at least one non-space character.");
+        return
+    }
+    if (folderName.includes('/')) {
+        console.log("Folder names cannot contain slashes.");
+        return
+    }
 
-/* 
- * Multer middleware to upload a document to AWS-S3
- *
- * I believe the client MUST match the route call of `uploadMulter.single('userFile')` with something like:
- * var theinput = document.getElementById('myfileinput')
- * var data = new FormData()
- * data.append('myfile',theinput.files[0])
- * fetch( "/upload", { method:"POST", body:data } )
- * https://stackoverflow.com/questions/31530200/node-multer-unexpected-field
- *
- * username comes via auth of JWT
- * projectid is via the parameters of the route
- */
-const uploadMulter = multer({
-    storage: multerS3({
-        s3: s3,
-        bucket: process.env.AWS_BUCKET,
-        key: function (req, file, cb){
-            var filekey = getFolderKey(req.user.username, req.params.projectid) + file.originalname;
-            cb(null, filekey);
-        },
-        contentType: function (req, file, cb) {
-            cb(null, getContentType(file.originalname));
-        },
-        contentDisposition: "inline",
-        acl: 'public-read'
-   }) 
-});
+    // here we don't use getFolderKey as that adds a '/'
+    var folderKey = encodeURIComponent(folderName);
+
+    s3.headObject({ Key: folderKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
+        if (!err) {
+            console.log("Folder already exists.");
+            return
+        }
+        if (err.code !== "NotFound") {
+            console.log("There was an error creating folder: " + err.message);
+            return
+        }
+        s3.putObject({ Key: folderKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
+            if (err) {
+                console.log("There was an error creating folder: " + err.message);
+                return
+            }
+            console.log("Successfully created folder: " + folderKey);
+        });
+    });
+}
 
 module.exports = {
     uploadFile,
     deleteFile,
     getContentType,
-    uploadMulter
+    uploadFileLocal,
 }
