@@ -59,20 +59,31 @@ const createProject = async (req, res) => {
     )
 };
 
+/*
+ * edit a user project. Does not allow for the changing of the title to one that
+ * is already used by another project of the user, as title is the primary key.
+ */
 const editProject = async (req, res) => {
-    //from the auth middleware, having jwt in header returns username
-  
-    //get user information from the username
-    const user = await Users.findOne({ username: req.user.username});
-    if(!user) return res.status(400).json({msg: 'Could not find username in database'});
-  
-    //loop through all projects, find specific project based off project-id
-    try{
+  //from the auth middleware, having jwt in header returns username
+
+  //get user information from the username
+  const user = await Users.findOne({ username: req.user.username});
+  if(!user) return res.status(400).json({msg: 'Could not find username in database'});
+
+  //loop through all projects, find specific project based off project-id
+  try{
     for (const project of user.projects){
       if(project.title == req.params.id){
   
-        if(req.body.title != null){       // renaming, changes the primary key
-          project.title = req.body.title;
+        if(req.body.title != null){
+          // ensure that no other project has this title, or else we would get clashing PKs
+          // await because we want to check this one first
+          const search = await Users.findOne({"username": req.user.username, "projects.title": { "$in": [req.body.title]} })
+          if (search) {
+            return res.status(400).json({msg: "Cannot update project, as another project already has this title."});
+          } else {
+            project.title = req.body.title;
+          }
         }
         if(req.body.text != null){
           project.text = req.body.text;
@@ -87,12 +98,11 @@ const editProject = async (req, res) => {
       }
     };
     return res.status(400).json({msg: 'Could not find specified project-id for user'});
-    }
-    catch(err){
-      return res.status(400).json({msg: 'Could not find specified project-id for user'});
-    }
-  
-  };
+    
+  } catch(err){
+    return res.status(400).json({msg: 'Could not find specified project-id for user'});
+  }
+};
 
 
 const deleteProject = async (req, res) => {
@@ -118,6 +128,30 @@ const deleteProject = async (req, res) => {
     }
 };
 
+/* get every project in the database 
+   - tested with users with no projects and differing lengths 
+ */
+const getAllProjects = async (req, res) => {
+  Users.find({})
+  .then( users => {
+    /* this bit does a list comprehension
+     * `[].concat.apply([], listcomp)` and `listcomp.flat()` both turn an array of arrays into one
+     * flat is neater but apparently it's newer, is that a concern?
+     * https://stackoverflow.com/a/10865042
+     * edit: after some benchmarking, the concat function seems faster with random strings
+     */
+    // return res.status(200).send(
+    //   users.map( user => {
+    //     return user.projects;
+    //   }).flat(1))
+    var listcomp = users.map(user => {return user.projects;});
+    return res.status(200).send( [].concat.apply([], listcomp) );
+  })
+  .catch( err => {
+    return res.status(500).json({msg: "Cannot connect to database."})
+  });
+}
+
 /* view all projects of a logged in user */
 const loggedInUserProjects = async (req, res) => {
   const user = await Users.findOne({ username: req.user.username});
@@ -132,5 +166,6 @@ module.exports = {
     createProject,
     deleteProject,
     editProject,
+    getAllProjects,
     loggedInUserProjects
 }
