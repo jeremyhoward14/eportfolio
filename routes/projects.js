@@ -136,7 +136,7 @@ router.post('/edit/:id', auth, async (req, res) => projectController.editProject
  * @swagger
  * /projects/delete/{title}:
  *   post:
- *     description: Delete a project belonging to the loged in user
+ *     description: Delete a project and all of its attachments
  *     consumes:
  *       - application/json
  *     parameters:
