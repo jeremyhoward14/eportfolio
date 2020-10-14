@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 
 const {registerValidation, loginValidation} = require('../validation');
+const { collection } = require("../models/users");
 
 
 const getAllUsers = (req, res) => {
@@ -126,6 +127,8 @@ const loginUser = async (req, res) => {
   //res.send('Logged in!')
 
 };
+
+
 module.exports = {
     getAllUsers,
     getOneUser,

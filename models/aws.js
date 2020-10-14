@@ -1,6 +1,8 @@
 require('dotenv').config();
 const fs = require('fs');
 const AWS = require('aws-sdk');
+const multer = require("multer");
+const multerS3 = require("multer-s3");
 
 // update the AWS config
 AWS.config = new AWS.Config();
@@ -9,7 +11,7 @@ AWS.config.secretAccessKey = process.env.AWS_SECRET_KEY;
 AWS.config.region = 'ap-southeast-2';
 
 
-// These next methods seem to be more 'modern' ways of setting hte config but I can't get them to work
+// These next methods seem to be more 'modern' ways of setting the config but I can't get them to work
 
 // const SESConfig = {
 //     accessKeyId: process.env.AWS_ACCESS_KEY,
@@ -26,50 +28,166 @@ AWS.config.region = 'ap-southeast-2';
 
 const s3 = new AWS.S3();
 
+
 /* 
-    upload a file given by filename to AWS S3
-    if foldername is not speicifed, uploads to the tests/ folder
+ * Multer middleware to upload a document to AWS-S3. The standard upload function
+ *
+ * I believe the client MUST match the route call of `uploadMulter.single('userFile')` with something like:
+ * var theinput = document.getElementById('myfileinput')
+ * var data = new FormData()
+ * data.append('myfile',theinput.files[0])
+ * fetch( "/upload", { method:"POST", body:data } )
+ * https://stackoverflow.com/questions/31530200/node-multer-unexpected-field
+ *
+ * username comes via auth of JWT
+ * projectid is via the parameters of the route
+ */
+const uploadFile = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: process.env.AWS_BUCKET,
+        key: function (req, file, cb){
+            var filekey = getFolderKey(req.user.username, req.params.projectid) + file.originalname;
+            cb(null, filekey);
+        },
+        contentType: function (req, file, cb) {
+            cb(null, getContentType(file.originalname));
+        },
+        contentDisposition: "inline",
+        acl: 'public-read'
+   }) 
+});
 
-    returns the url the file was uploaded to, to be inserted into the mongo db
+/* 
+ * delete a file given by url from AWS S3
+ *
+ * callback has 1 argument (err) that will contain the AWS error message
 */
-function uploadFile(filename, folderName) {
-    fs.readFile(filename, (err, data) => {
-        if (err) throw err;
+const deleteFile = async (fileurl, callback) => {
 
-        var fileKey = getFolderKey(folderName) + encodeURIComponent(filename);
+    if (!fileurl) {
+        callback({err: "file does not exist"});
+        return;
+    }
+
+    // get the filekey from the input url
+    // url should be starter2 beased on all documentation, but the actual files are on starter1??
+    var starter1 = "https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/";
+    var starter2 = "https://circlespace-uploads.s3.ap-southeast-2.amazonaws.com/";
+    var fileKey = fileurl.replace(starter1, '');
+    var fileKey = fileurl.replace(starter2, '');
+
+    s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
+        if (err) {
+            callback(err.message);
+        } else {
+            callback(null);
+        }
+    });
+};
+
+/*
+ * convert a username and projectname into a valid string to act as a foldername, and adds a '/'
+ * folder scheme follows "/username/projectname/file"
+ */
+function getFolderKey(username = undefined, projectname = undefined) {
+    if (username === undefined || projectname === undefined) {
+        var folderKey = "tests/";
+    } else {
+        var folderKey = encodeURIComponent(username) + "/" + encodeURIComponent(projectname) + "/";
+    }
+    return folderKey;
+}
+
+/*
+ * Parse the extension of a file into one of the S3 metadata options.
+ * An extension that doesn't match returns "binary/octet", the default
+ */
+const getContentType = (filename) => {
+    extensions = [
+        {"ext": "pdf",  "type": "application/pdf"},
+        {"ext": "doc",  "type": "application/msword"},
+        {"ext": "docx", "type": "application/msword"},
+        {"ext": "jpeg", "type": "image/jpg"},
+        {"ext": "png",  "type": "image/png"},
+        {"ext": "gif",  "type": "image/gif"},
+        {"ext": "tiff", "type": "image/tiff"},
+        {"ext": "txt",  "type": "text/plain"},
+        {"ext": "rtf",  "type": "text/rtf"}
+    ]
+    // courtesy: https://stackoverflow.com/a/12900504
+    var extension = filename.slice((Math.max(0, filename.lastIndexOf(".")) || Infinity) + 1);
+    var found = extensions.find(elem => elem.ext === extension);
+    if (found)
+        return found.type;
+    else     // unsupported file type
+        return "application/octet-stream";
+        return "binary/octet";
+}
+
+
+/* * * * DEPRECATED FUNCTIONS * * * */
+
+/* 
+ * @deprecated
+ * upload a file to AWS S3, given by the filename of the local file on disk.
+ *
+ * callback has 2 arguments (err, url)
+ *     - err is null or contains the AWS error message
+ *     - url wil hold the URL that the file was uploaded to
+*/
+const uploadFileLocal = async (filename, username, projectname, callback) => {
+    fs.readFile(filename, (err, data) => {
+        if (err) {
+            callback(err, undefined);
+        }
+
+        var fileKey = getFolderKey(username, projectname) + encodeURIComponent(filename);
 
         const params = {
             Bucket: process.env.AWS_BUCKET,
             Key: fileKey,
-            Body: JSON.stringify(data, null, 2)
+            Body: data,
+            ContentType: getContentType(filename),  // this won't work if we are passing in the file as data??
+            // inline type lets file be displayed in-browser
+            ContentDisposition: "inline",
+            // content type to force later download: http://iwantmyreal.name/s3-download-only-presigned-upload
+            // ContentDisposition: "attachment; filename=\"" + filename + "\"",
+            ACL: 'public-read'
         };
         // s3.upload(params, function (s3Err, data) {
         //     if (s3Err) throw s3Err
         //     console.log(`File uploaded successfully at ${data.Location}`);
         // });
 
-        var upload = new AWS.S3.ManagedUpload({params});
-
-        var promise = upload.promise();
-
-        promise.then(
+        var upload = new AWS.S3.ManagedUpload({params}).promise()
+        .then(
             function (data) {
-                console.log(`Successfully uploaded file: ${data.Location}`);
-                return getFileURL(fileKey);
+                // console.log(`Successfully uploaded file: ${data.Location}`);
+                callback(null, data.Location);
             },
             function (err) {
-                console.log("Error uploading file: " + err.message);
+                // console.log("Error uploading file: " + err.message);
+                callback(err.message, undefined);
                 return
             }
         );
     });
 };
 
+/* 
+ * @deprecated: unnecessary with multer
+ * generate the url that a file will be saved to based on its fileKey
+ */
+function getFileURL(fileKey) {
+    return "https://" + process.env.AWS_BUCKET + ".s3." + process.env.AWS_REGION + ".amazonaws.com/" + fileKey
+}
 
 /*
-    creates a folder on AWS S3
-    This could either be used to create folders for individual users, or for 
-    users to be able to create their own folders (or both)
+ * @deprectated: unnecessary
+ * creates a folder on AWS S3
+ * This could either be used to create folders for individual users, or for 
+ * users to be able to create their own folders (or both)
 */
 function createFolder(folderName) {
     folderName = folderName.trim();
@@ -104,39 +222,9 @@ function createFolder(folderName) {
     });
 }
 
-
-/* 
-    delete a file given by filename from AWS S3
-    if foldername is not speicifed, deletes from the tests/ folder
-*/
-function deleteFile(fileName, folderName) {
-
-    var fileKey = getFolderKey(folderName) + encodeURIComponent(fileName);
-
-    s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
-        if (err) {
-            console.log("There was an error deleting the file " + err.message);
-            return
-        }
-        console.log("Successfully deleted file.");
-    });
-}
-
-/*
-    convert a foldername into a valid string to store, and adds a '/'
-*/
-function getFolderKey(folderName = undefined) {
-    if (folderName === undefined) {
-        var folderKey = "tests/";
-    } else {
-        var folderKey = encodeURIComponent(folderName) + "/";
-    }
-    return folderKey;
-}
-
-/*
-    generate the url that a file will be saved to based on its fileKey
-*/
-function getFileURL(fileKey) {
-    return "https://" + process.env.AWS_BUCKET + ".s3." + process.env.AWS_REGION + ".amazonaws.com/" + fileKey
+module.exports = {
+    uploadFile,
+    deleteFile,
+    getContentType,
+    uploadFileLocal,
 }
