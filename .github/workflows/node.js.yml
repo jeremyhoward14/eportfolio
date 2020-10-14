@@ -30,3 +30,9 @@ jobs:
       env:  # Set environment variables
         DATABASE_URL: ${{ secrets.DATABASE_URL }}
         jwtSecret: ${{ secrets.jwtSecret }}
+        AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+        AWS_SECRET_KEY: ${{ secrets.AWS_SECRET_KEY }}
+        AWS_REGION: ${{ secrets.AWS_REGION }}
+        AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
+        AWSAccessKeyId: ${{ secrets.AWSAccessKeyId }}
+        AWSSecretKey: ${{ secrets.AWSSecretKey }}
