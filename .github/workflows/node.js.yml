@@ -36,5 +36,3 @@ jobs:
         AWS_BUCKET: ${{ secrets.AWS_BUCKET }}
         AWSAccessKeyId: ${{ secrets.AWSAccessKeyId }}
         AWSSecretKey: ${{ secrets.AWSSecretKey }}
-
-

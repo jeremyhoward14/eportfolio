@@ -2,55 +2,12 @@ const aws = require("../models/aws");
 const Users = require("../models/users");
 
 /*
- * upload a file to the aws servers, then add it to the mongo db database
- * 
- * For now, is taking in a filename only while waiting for the file-type selection to be implemented
- */
-const uploadFile = async (req, res) => {
-    var username = req.user.username;   // from jwt
-    var filename = req.body.file;
-    var projectname = req.params.projectid;
-
-    // first, check if the project exists
-    Users.collection.findOne({username: username, "projects.title": { "$in": [projectname]} })
-    .then( async (project) => {
-        if (project) {
-            aws.uploadFile(filename, username, projectname, async (err, url) => {
-                if (err) { throw err; }
-        
-                // upload to Mongo
-                var query = { username: username };
-                var updateDocument = {
-                    $addToSet: {"projects.$[project].attachments": {url: url}}      // addToSet means that a url will be unique
-                };
-                // choose only the array matching the desired project
-                var options = {
-                    arrayFilters: [{
-                        "project.title" : projectname
-                    }]
-                }
-        
-                const user = await Users.collection.updateOne(query, updateDocument, options);
-                if (user == null){
-                    return res.status(500).json({msg:"Could not insert url into database."});
-                } else {
-                    return res.status(201).send(url);   // on success, send the url uploaded to
-                }
-            })
-    } else {
-        return res.status(404).json({msg:"Could not find specified project-id for user."});
-    }})
-    .catch(project => { return res.status(404).json({msg:"Could not find specified project-id for user."}); })
-};
-
-
-/*
  * Upload the url for the uploaded file to MongoDB.
  * called via the upload route. First the projectVerifyExists middleware verifies that our target
- * project exists, so we know that we'll be able to find it. Then multer uploads to iso S3. This
- * then uploads the resultant link stored in req.file.locaiton to mongo.
+ * project exists, so we know that we'll be able to find it. Then multer uploads to aws S3. This
+ * then uploads the resultant link stored in req.file.location to mongo.
  */
-const uploadFileMongo = async (req, res) => {
+const uploadFile = async (req, res) => {
     var username = req.user.username;
     var projectname = req.params.projectid;
     var url = req.file.location;
@@ -112,7 +69,7 @@ const deleteFile = async (req, res) => {
                     res.status(200).json({msg:"Successfully deleted file"});
             
                 } else {
-                    // TODO this means that the file was deleted from aws but not mongo, what do we want to do??
+                    // file was deleted from aws but not mongo, without transactions there's not much we can do about this
                     return res.status(404).json({msg:"Could not find specified project-id for user."});
                 }
             })
@@ -156,9 +113,52 @@ const deleteProjectFiles = async (username, projecttitle, callback) => {
 }
 
 
+/*
+ * @deprecated
+ * upload a file to the aws servers, then add it to the mongo db database
+ * Takes in a filename in req.body.filename and opens up the file from local storage
+ */
+const uploadFileFromLocal = async (req, res) => {
+    var username = req.user.username;   // from jwt
+    var filename = req.body.file;
+    var projectname = req.params.projectid;
+
+    // first, check if the project exists
+    Users.collection.findOne({username: username, "projects.title": { "$in": [projectname]} })
+    .then( async (project) => {
+        if (project) {
+            aws.uploadFileLocal(filename, username, projectname, async (err, url) => {
+                if (err) { throw err; }
+        
+                // upload to Mongo
+                var query = { username: username };
+                var updateDocument = {
+                    $addToSet: {"projects.$[project].attachments": {url: url}}      // addToSet means that a url will be unique
+                };
+                // choose only the array matching the desired project
+                var options = {
+                    arrayFilters: [{
+                        "project.title" : projectname
+                    }]
+                }
+        
+                const user = await Users.collection.updateOne(query, updateDocument, options);
+                if (user == null){
+                    return res.status(500).json({msg:"Could not insert url into database."});
+                } else {
+                    return res.status(201).send(url);   // on success, send the url uploaded to
+                }
+            })
+    } else {
+        return res.status(404).json({msg:"Could not find specified project-id for user."});
+    }})
+    .catch(project => { return res.status(404).json({msg:"Could not find specified project-id for user."}); })
+};
+
+
 module.exports = {
     uploadFile,
-    uploadFileMongo,
     deleteFile,
-    deleteProjectFiles
+    deleteProjectFiles,
+    uploadFileFromLocal,
 }
