@@ -34,7 +34,6 @@ const userSchema = new mongoose.Schema({
             default: 'JOB_SEARCHER',
         },
         picture: String,
-        socials: [String],
         
     },
     projects: [{
