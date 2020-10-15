@@ -57,11 +57,8 @@ router.get("/", (req, res) => projectController.getAllProjects(req, res));
  *               type: string
  *             tags:
  *               type: array
- *               items: 
- *                 type: object
- *                 properties:
- *                   tag:
- *                      type: string
+ *               items:
+ *                 type: string
  *     produces:
  *       - application/json
  *     responses:
@@ -119,11 +116,8 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  *               type: string
  *             tags:
  *               type: array
- *               items: 
- *                 type: object
- *                 properties:
- *                   tag:
- *                      type: string
+ *               items:
+ *                 type: string
  *     produces:
  *       - application/json
  *     responses:

@@ -5,7 +5,7 @@ let User = require('../models/users');
 let chai = require('chai');
 let chaiHttp = require('chai-http');
 let app = require('../app');
-let should = chai.should();
+let should = chai.should(); 
 
 
 chai.use(chaiHttp);
@@ -22,32 +22,21 @@ describe('Projects', () => {
  describe('/POST update project for /projects/edit/{title}', () => {
   it('it should successfully update a specified title', (done) => {
     let registerUser = {
-      "username": "reg123",
-      "email": "reg123@gmail.com",
-      "password": "reg123",
-      "firstname": "reg123",
-      "lastname": "reg123"
+      "username": "regi",
+      "email": "regi@gmail.com",
+      "password": "regi",
+      "firstname": "regi",
+      "lastname": "regi"
     }
     let project = {
         "title": "project",
         "text": "first project!!!",
-        "tags": [
-          {
-            "tag": "test"
-          },
-          {
-            "tag": "two tags"
-          }
-        ]
+        "tags": ["one tag"]
       }
     let updatedProject = {
         "title": "updatedProject",
         "text": "updating the first project",
-        "tags": [
-          {
-            "tag": "one tag"
-          },
-        ]
+        "tags": ["one tag", "two tags"]
       }
   chai.request(app)
       .post('/users/signup')
@@ -86,25 +75,14 @@ describe('Projects', () => {
       "lastname": "reg2"
     }
     let project = {
-        "title": "money makes the world go round",
+        "title": "project",
         "text": "first project!!!",
-        "tags": [
-          {
-            "tag": "test"
-          },
-          {
-            "tag": "two tags"
-          }
-        ]
+        "tags": ["one tag"]
       }
     let updatedProject = {
     "title": "updatedProject",
     "text": "updating the first project",
-    "tags": [
-        {
-        "tag": "one tag"
-        },
-    ]
+    "tags": ["one tag"]
     }
   chai.request(app)
       .post('/users/signup')
@@ -150,11 +128,7 @@ describe('Projects', () => {
     let project = {
         "title": "CreateProject",
         "text": "first project!!!",
-        "tags": [
-          {
-            "tag": "test"
-          },
-        ]
+        "tags": ["one tag"]
       }
   chai.request(app)
       .post('/users/signup')
@@ -185,20 +159,12 @@ describe('Projects', () => {
     let project = {
         "title": "firstProject",
         "text": "first project!!!",
-        "tags": [
-          {
-            "tag": "test"
-          },
-        ]
+        "tags": ["one tag"]
       }
     let new_project = {
         "title": "firstProject",
         "text": "different text but same title",
-        "tags": [
-          {
-            "tag": "test"
-          },
-        ]
+        "tags": ["one tag"]
       }
   chai.request(app)
       .post('/users/signup')
@@ -243,11 +209,7 @@ describe('/POST update project for /projects/delete/{title}', () => {
     let project = {
         "title": "projectToDelete",
         "text": "first project!!!",
-        "tags": [
-          {
-            "tag": "test"
-          },
-        ]
+        "tags": ["one tag"]
       }
   chai.request(app)
       .post('/users/signup')
@@ -286,11 +248,7 @@ describe('/POST update project for /projects/delete/{title}', () => {
     let project = {
         "title": "projectTofailDelete",
         "text": "first project!!!",
-        "tags": [
-          {
-            "tag": "test"
-          },
-        ]
+        "tags": ["one tag"]
       }
   chai.request(app)
       .post('/users/signup')
@@ -349,11 +307,7 @@ describe('/POST update project for /projects/delete/{title}', () => {
     let project = {
         "title": "getProject",
         "text": "first project!!!",
-        "tags": [
-          {
-            "tag": "test"
-          },
-        ]
+        "tags": ["one tag"]
       }
   chai.request(app)
       .post('/users/signup')
