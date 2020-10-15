@@ -11,6 +11,8 @@ const auth = require('../middleware/auth')
  * @swagger
  * /projects:
  *   get:
+ *     tags:
+ *       - projects
  *     description: Returns all projects in the database.
  *     produces:
  *       - application/json
@@ -27,6 +29,8 @@ router.get("/", (req, res) => projectController.getAllProjects(req, res));
  * @swagger
  * /projects/create:
  *   post:
+ *     tags:
+ *       - projects
  *     description: Create a new project for the logged in user
  *     consumes:
  *       - application/json
@@ -77,6 +81,8 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  * @swagger
  * /projects/edit/{title}:
  *   post:
+ *     tags:
+ *       - projects
  *     description: Update a project. Each field in the body is not required so
  *       can update single or multiple fields at a time. Doesn't allow for the 
  *       changing of the title to one that is already used by another project of
@@ -136,6 +142,8 @@ router.post('/edit/:id', auth, async (req, res) => projectController.editProject
  * @swagger
  * /projects/delete/{title}:
  *   post:
+ *     tags:
+ *       - projects
  *     description: Delete a project and all of its attachments
  *     consumes:
  *       - application/json
@@ -168,6 +176,8 @@ router.post("/delete/:id", auth, (req, res) => projectController.deleteProject(r
  * @swagger
  * /projects/user:
  *   get:
+ *     tags:
+ *       - projects
  *     description: List all of the projects belonging to the logged in user.
  *     consumes:
  *       - application/json

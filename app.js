@@ -11,7 +11,7 @@ const swaggerOptions = {
     swaggerDefinition: {
         info: {
             title: "Circlespace API",
-            description: "Placeholder description please change it to something nice.",
+            description: "Showcase to the world.",
             servers: ["http://localhost:3000"],
         }
     },

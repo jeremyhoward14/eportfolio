@@ -11,12 +11,14 @@ const userController = require("../controllers/users");
  * @swagger
  * /users:
  *   get:
+ *     tags:
+ *       - users
  *     description: Returns all users.
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of users and their respective details.
+ *         description: API Routes.
  */
 router.get("/", (req, res) => userController.getAllUsers(req, res));
 
@@ -24,6 +26,8 @@ router.get("/", (req, res) => userController.getAllUsers(req, res));
  * @swagger
  * /users/{id} :
  *   get:
+ *     tags:
+ *       - users
  *     description: Returns a single user.
  *     parameters:
  *       - in: path
@@ -47,6 +51,8 @@ router.get("/:id", (req, res) => userController.getOneUser(req, res));
  * @swagger
  * /users/signup:
  *   post:
+*     tags:
+ *       - users
  *     description: Supplying user schema adds user to database after checking validation.
  *     consumes:
  *       - application/json
@@ -89,6 +95,8 @@ router.post("/signup", (req, res)=> userController.registerUser(req, res));
  * @swagger
  * /users/login:
  *   post:
+*     tags:
+ *       - users
  *     description: Checks if the password matches email.
  *     consumes:
  *       - application/json

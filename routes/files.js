@@ -15,6 +15,8 @@ const awsAdaptor = require("../models/aws");
  * @swagger
  * /files/{projectid}/upload:
  *   post:
+ *     tags:
+ *       - files
  *     description: Uploads incoming file to aws s3 server and attaches it to project. File comes in as binary data.
  *       - application/json
  *     parameters:
@@ -53,6 +55,8 @@ router.post("/:projectid/upload", auth, verifyProjectExists, awsAdaptor.uploadFi
  * @swagger
  * /files/{projectid}/delete:
  *   post:
+ *     tags:
+ *       - files
  *     description: Deletes file with supplied url from aws s3 server
  *       - application/json
  *     parameters:
@@ -100,6 +104,8 @@ router.post("/:projectid/delete", auth, async (req, res) => fileHandler.deleteFi
  * @swagger
  * /files/{projectid}/uploadFromLocal:
  *   post:
+ *     tags:
+ *       - files
  *     deprecated: true
  *     description: Uploads specified file on local machine to aws s3 server and attaches it to project
  *       - application/json
