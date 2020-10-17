@@ -30,6 +30,7 @@ let usersRouter = require('./routes/users');
 let filesRouter = require('./routes/files');
 let postRoute = require('./routes/posts');
 let projectsRoute = require('./routes/projects');
+let circleRoute = require('./routes/circle');
 
 //Create the express app
 const app = express();
@@ -63,6 +64,7 @@ app.use('/users', usersRouter);
 app.use('/files', filesRouter);
 app.use('/posts', postRoute);
 app.use('/projects', projectsRoute);
+app.use('/circle', circleRoute);
 
 //Create the route for the API route documentation
 app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
