@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 
 const {registerValidation, loginValidation} = require('../validation');
 const { collection } = require("../models/users");
+const projectController = require("../controllers/projects");
 
 
 const getAllUsers = (req, res) => {
@@ -148,18 +149,39 @@ const deleteUser = async (req, res) => {
     return res.status(500).json("Server error: could not find user.");
   } else {
     // delete all attachments related to the user's projects
+    // structure here relates to: https://stackoverflow.com/a/21185103
+    var numProjects = user.projects.length;
+    if (numProjects === 0) {
+      deleteUserAfterProjectsDeleted(req.user.username, res);
+    } else {
 
-    // call whatever deleteFile / deleteProjectFiles function has been written
+      user.projects.forEach(p => {
 
-    Users.collection.deleteOne({username: req.user.username})
-    .then(result => {
-      return res.status(200).json({msg: "sucessfully deleted user."});
-    })
-    .catch(result => {
-      return res.status(500).json({msg: result});
-    });
+        projectController.deleteProject(req.user, p.title, (ret) => {
+
+          if (ret.code != 200) {
+            return res.status(ret.code).json({msg:ret.msg});
+          }
+
+          // deleted all projects, now remove user
+          if (--numProjects === 0) {
+            deleteUserAfterProjectsDeleted(req.user.username, res);
+          }
+        });
+      })
+    }
   }
 };
+
+function deleteUserAfterProjectsDeleted(username, res) {
+  Users.collection.deleteOne({username: username})
+  .then(result => {
+    return res.status(200).json({msg: "sucessfully deleted user."});
+  })
+  .catch(result => {
+    return res.status(500).json({msg: result});
+  });
+}
 
 module.exports = {
     getAllUsers,

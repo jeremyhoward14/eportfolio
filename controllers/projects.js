@@ -110,26 +110,30 @@ const editProject = async (req, res) => {
 };
 
 
-const deleteProject = async (req, res) => {
-    var username = req.user.username; // from jwt
-    var title = req.params.id
+// todo check that this still works for regular delete project, i hope so
+// also need to change this back to (req, res) arguments
+const deleteProject = async (user, title, callback) => {
+    var username = user.username; // from jwt
 
     // see if the user has a project by that title
     const search = await Users.findOne({"username": username, "projects.title": { "$in": [title]} })
     if (search) {     // remove it     
         FileHandler.deleteProjectFiles(username, title, (err) => {
           if (err) {
-            return res.status(500).json({msg: "could not delete project files"});
+            callback({code:500, msg: "could not delete project files"})
+            return
           } else {
             search.projects = search.projects.filter( el => el.title !== title);
-            search.save()
-            return res.status(200).json( {msg: 'Successfully deleted project.'} );
+            search.update();    // update vs save avoids race condition issues
+            callback({code:200, msg: "Sucessfully deleted project."})
+            return 
           }
         })
 
     } else {
         // project does not exist
-        return res.status(404).json( {msg: 'Could not find specified project-id for user.'} ); // we know the user should exist because it was passed in from jwt
+        callback({code:404, msg: 'Could not find specified project-id for user.'} ); // we know the user should exist because it was passed in from jwt
+        return 
     }
 };
 
