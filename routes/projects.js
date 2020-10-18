@@ -163,10 +163,7 @@ router.post('/edit/:id', auth, async (req, res) => projectController.editProject
  *         description: Could not find specified project-id for user.
  *       
  */
-router.post("/delete/:id", auth, (req, res) => projectController.deleteProject(req.user, req.params.title, (ret) => {
-        res.status(ret.code).json({msg:ret.msg});
-    })
-);
+router.post("/delete/:id", auth, (req, res) => projectController.deleteProjectRoute(req, res));
 
 
 /**

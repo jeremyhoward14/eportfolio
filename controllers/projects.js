@@ -110,23 +110,39 @@ const editProject = async (req, res) => {
 };
 
 
+/* wrapper over deleteProject that allows it to be called from a route */
+const deleteProjectRoute = async (req, res) => {
+  deleteProject(req.user, req.params.id , (ret) => {
+    return res.status(ret.code).json({msg:ret.msg});
+  })
+}
+
+
 // todo check that this still works for regular delete project, i hope so
-// also need to change this back to (req, res) arguments
 const deleteProject = async (user, title, callback) => {
     var username = user.username; // from jwt
 
     // see if the user has a project by that title
     const search = await Users.findOne({"username": username, "projects.title": { "$in": [title]} })
+    console.log(search);
+    console.log(search.projects[0]);
     if (search) {     // remove it     
         FileHandler.deleteProjectFiles(username, title, (err) => {
           if (err) {
             callback({code:500, msg: "could not delete project files"})
             return
           } else {
-            search.projects = search.projects.filter( el => el.title !== title);
-            search.update();    // update vs save avoids race condition issues
-            callback({code:200, msg: "Sucessfully deleted project."})
-            return 
+            // search.projects = search.projects.filter( el => el.title !== title);
+            // search.save();  // save or update throw concurrency erros / fail
+            Users.findByIdAndUpdate(search._id, { 
+              $pull: { "projects": { "title": title } }
+            }).then( () => {
+              callback({code:200, msg: "Sucessfully deleted project."})
+              return;
+            }).catch( () => {
+              callback({code:500, msg: "could not delete project files"});
+              return
+            })
           }
         })
 
@@ -186,6 +202,7 @@ const loggedInUserProjects = async (req, res) => {
 module.exports = {
     createProject,
     deleteProject,
+    deleteProjectRoute,
     editProject,
     getAllProjects,
     loggedInUserProjects
