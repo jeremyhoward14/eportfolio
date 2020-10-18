@@ -11,7 +11,7 @@ const getCircle = (req, res) => {
       })
 };
 
-const addCircle = async (req, res) => {
+const addToCircle = async (req, res) => {
     //from the auth middleware, having jwt in header returns username
   
     //get user information from the username
@@ -40,7 +40,7 @@ const addCircle = async (req, res) => {
         }        
       })
 };
-const removeCircle = async (req, res) => {
+const removeFromCircle = async (req, res) => {
     //from the auth middleware, having jwt in header returns username
   
     //get user information from the username
@@ -58,7 +58,7 @@ const removeCircle = async (req, res) => {
     }
 };
 module.exports = {
-    addCircle,
-    removeCircle,
+    addToCircle,
+    removeFromCircle,
     getCircle
 }
