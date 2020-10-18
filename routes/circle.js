@@ -39,7 +39,7 @@ const circleController = require("../controllers/circle");
  *         description: User could not be found in database
  *       
  */
-router.post("/add/:friend", auth, async (req, res) => circleController.addCircle(req, res));
+router.post("/add/:friend", auth, async (req, res) => circleController.addToCircle(req, res));
 
 /**
  * @swagger
@@ -72,7 +72,7 @@ router.post("/add/:friend", auth, async (req, res) => circleController.addCircle
  *         description: Could not find user in circle
  *       
  */
-router.post("/remove/:friend", auth, async (req, res) => circleController.removeCircle(req, res));
+router.post("/remove/:friend", auth, async (req, res) => circleController.removeFromCircle(req, res));
 
 /**
  * @swagger
