@@ -11,4 +11,6 @@
  *      description: Everything to do with projects.
  *    - name: files
  *      description: Everything to do with files.
+ *    - name: circles
+ *      description: Everything to do with circles.
  */
