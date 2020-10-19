@@ -6,7 +6,7 @@ const getCircle = (req, res) => {
         if (user) {
           res.send(user.circle);
         } else {
-          res.status(404).send("User not found.");
+          res.status(404).json({msg: 'Could not find username in database'});
         }        
       })
 };
@@ -34,7 +34,7 @@ const addToCircle = async (req, res) => {
             user.circle.push(req.params.friend);
             user.save();
 
-            res.send("You have added " + user2.username + " to your circle!");
+            res.status(200).json({msg: "You have added " + user2.username + " to your circle!"});
         } else {
             return res.status(404).json({msg: 'Could not find username in database'});
         }        
@@ -52,7 +52,7 @@ const removeFromCircle = async (req, res) => {
     if(index > -1){
         user.circle.splice(index, 1);
         user.save()
-        res.send("Successfully removed " + req.params.friend + " from your circle!");
+        res.status(200).json({msg: "Successfully removed " + req.params.friend + " from your circle!"});
     }else{
         return res.status(404).json({msg: 'Could not find username in your circle'});
     }
