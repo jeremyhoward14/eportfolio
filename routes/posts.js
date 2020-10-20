@@ -13,7 +13,10 @@ router.get('/', auth, async (req, res) => {
           email:user.email,
           firstname: user.firstname,
           lastname: user.lastname,
-          projects: user.projects
+          projects: user.projects,
+          circle: user.circle,
+          bio: user.circle
+
         }
       });
 });
