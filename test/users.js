@@ -169,6 +169,8 @@ chai.request(app)
           res.body.user.should.have.property('firstname');
           res.body.user.should.have.property('lastname');
           res.body.user.should.have.property('projects');
+          res.body.user.should.have.property('circle');
+          // res.body.user.should.have.property('bio');
 
           done();
         });
@@ -246,10 +248,11 @@ chai.request(app)
             res.should.have.status(200);
             res.body.should.have.property('username');
             res.body.should.have.property('email');
-            res.body.should.have.property('password');
             res.body.should.have.property('firstname');
             res.body.should.have.property('lastname');
             res.body.should.have.property('projects');
+            res.body.should.have.property('circle');
+            // res.body.should.have.property('bio');
           done();
         });
       }) 

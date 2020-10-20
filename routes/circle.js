@@ -68,6 +68,8 @@ router.post("/add/:friend", auth, async (req, res) => circleController.addToCirc
  *     responses:
  *       200:
  *         description: Successfully removed friend to circle
+ *       400:
+ *         description: Cannot delete self
  *       404:
  *         description: Could not find user in circle
  *       
