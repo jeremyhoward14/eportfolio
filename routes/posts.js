@@ -15,7 +15,7 @@ router.get('/', auth, async (req, res) => {
           lastname: user.lastname,
           projects: user.projects,
           circle: user.circle,
-          bio: user.circle
+          bio: user.bio
 
         }
       });
