@@ -149,8 +149,20 @@ const getAllProjects = async (req, res) => {
     //   users.map( user => {
     //     return user.projects;
     //   }).flat(1))
-    var listcomp = users.map(user => {return user.projects;});
-    return res.status(200).send( [].concat.apply([], listcomp) );
+
+    projects = [];
+    for (var user of users){
+      for (var proj of user.projects) {
+        projects.push({username: user.username, project: proj});
+      }
+    }
+    return res.status(200).send(projects);
+
+    // var listcomp = users.map(user => {
+    //   return {username: user.username, project: user.projects}
+    // });
+
+    // return res.status(200).send( [].concat.apply([], listcomp) );
   })
   .catch( err => {
     return res.status(500).json({msg: "Cannot connect to database."})
