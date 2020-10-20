@@ -11,7 +11,11 @@ const getAllUsers = (req, res) => {
       if (findErr) {
         res.status(500).send("Database error");
       } else {
-        res.send(data);
+        // list comprehension to scrub passwords
+        var listcomp = data.map(user => {
+          return getPublicUserObject(user);
+        });
+        res.send([].concat.apply([], listcomp));
       }
     });
 };
@@ -21,7 +25,7 @@ const getOneUser = (req, res) => {
     Users.findOne({ username: req.params.id})
       .then(user => {
         if (user) {
-          res.send(user);
+          res.send(getPublicUserObject(user));
         } else {
           res.status(404).send("User not found.");
         }        
@@ -113,20 +117,26 @@ const loginUser = async (req, res) => {
   //res.header('auth-token', token).send(token);
   res.json({
     token,
-    user: {
-      id: user.id,
-      username: user.username,
-      email:user.email,
-      firstname: user.firstname,
-      lastname: user.lastname,
-      projects: user.projects
-    }
+    user: getPublicUserObject(user)
   });
   }
   catch (e) { throw e};
   //res.send('Logged in!')
 
 };
+
+const getPublicUserObject = (user) => {
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    firstname: user.firstname,
+    lastname: user.lastname,
+    circle: user.circle,
+    bio: user.bio,
+    projects: user.projects
+  };
+}
 
 
 module.exports = {
