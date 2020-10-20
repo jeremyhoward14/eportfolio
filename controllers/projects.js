@@ -134,9 +134,10 @@ const deleteProject = async (user, title, callback) => {
           } else {
             // search.projects = search.projects.filter( el => el.title !== title);
             // search.save();  // save or update throw concurrency erros / fail
-            Users.findByIdAndUpdate(search._id, { 
-              $pull: { "projects": { "title": title } }
-            }).then( () => {
+            Users.findByIdAndUpdate(search._id, 
+              { $pull: { "projects": { "title": title } } }, 
+              { useFindAndModify: false }
+            ).then( () => {
               callback({code:200, msg: "Sucessfully deleted project."})
               return;
             }).catch( () => {
