@@ -126,4 +126,38 @@ router.post("/signup", (req, res)=> userController.registerUser(req, res));
 router.post("/login", async (req, res) => userController.loginUser(req, res));
 
 
+// temporary location for this route, waiting on profiles
+const fileHandler = require("../controllers/files")
+const awsAdaptor = require("../models/aws")
+/**
+ * @swagger
+ * /users/uploadDP:
+ *   post:
+ *     tags:
+ *       - users
+ *     description: Uploads profile picture to <aws url>/<username>/dp.<ext>. File comes in as binary data.
+ *       - application/json
+ *     parameters:
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *       - in: formData
+ *         name: userFile
+ *         required: true
+ *         type: file
+ *         description: The image to upload.
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       201:
+ *         description: Returns URL the file was uploaded to.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/uploadDP", auth, awsAdaptor.uploadDP.single('userFile'), (req, res) => fileHandler.uploadDP(req, res));
+
+
 module.exports = router;

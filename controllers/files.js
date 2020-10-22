@@ -113,6 +113,23 @@ const deleteProjectFiles = async (username, projecttitle, callback) => {
 }
 
 
+/* upload new / update user's DP */
+const uploadDP = (req, res) => {
+    var url = req.file.location;
+
+    Users.findOne({username: req.user.username})
+        .then( (user) => {
+            // user.bio.picture = url; // throwing errors as bio does not exist, blocked by bio branch
+            // user.save()
+            console.log(url);
+            return res.status(201).send(url)
+        })
+        .catch( () => {
+            res.status(500).json({msg: "server error"}) 
+        });
+}
+
+
 /*
  * @deprecated
  * upload a file to the aws servers, then add it to the mongo db database
@@ -160,5 +177,6 @@ module.exports = {
     uploadFile,
     deleteFile,
     deleteProjectFiles,
+    uploadDP,
     uploadFileFromLocal,
 }

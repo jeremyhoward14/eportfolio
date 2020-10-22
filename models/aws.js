@@ -58,6 +58,31 @@ const uploadFile = multer({
    }) 
 });
 
+
+/* 
+ * upload profile picture for the user.
+ * Because of the way the multer middleware works, I don't know how to have the 
+ * req object reflect if it's doing dp or file, so this function is almost 
+ * identical to uploadFile
+ */
+const uploadDP = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: process.env.AWS_BUCKET,
+        key: function (req, file, cb){
+            var filekey = req.user.username + '/dp';
+            cb(null, filekey);
+        },
+        contentType: function (req, file, cb) {
+            cb(null, getContentType(file.originalname));
+        },
+        contentDisposition: "inline",
+        acl: 'public-read'
+   }) 
+});
+
+
+
 /* 
  * delete a file given by url from AWS S3
  *
@@ -224,6 +249,7 @@ function createFolder(folderName) {
 
 module.exports = {
     uploadFile,
+    uploadDP,
     deleteFile,
     getContentType,
     uploadFileLocal,
