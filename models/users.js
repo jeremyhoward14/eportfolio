@@ -25,15 +25,17 @@ const userSchema = new mongoose.Schema({
         required: true,
     },
     circle: [String],
-    bio: {
+    picture: {
         type: String,
+    },
+    bio: {
+        text: String,
         socials: [String],
         category: {
             type: String,
             enum: ['JOB_SEARCHER', 'RECRUITER'],
             default: 'JOB_SEARCHER',
         },
-        picture: String,
     },
     projects: [{
         title: String, 
