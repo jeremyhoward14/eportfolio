@@ -141,6 +141,8 @@ const getPublicUserObject = (user) => {
 }
 
 
+profileController = require("../controllers/profile")
+
 /* delete the logged in user, takes in JWT via auth */
 const deleteUser = async (req, res) => {
   const user = await Users.findOne({username: req.user.username});
@@ -154,28 +156,36 @@ const deleteUser = async (req, res) => {
         return res.status(500).json({msg:"server error"});
       } else {
         
-        // delete all attachments related to the user's projects
-        // structure here relates to: https://stackoverflow.com/a/21185103
-        var numProjects = user.projects.length;
-        if (numProjects === 0) {
-          deleteUserCleanup(req.user.username, res);
-        } else {
+        // delete the DP from AWS
+        profileController.deleteDP(user.picture, (err) => {
+          
+          if (err) {
+            return res.status(err.status).json({msg:err.msg});
+          }
 
-          user.projects.forEach(p => {
+          // delete all attachments related to the user's projects
+          // structure here relates to: https://stackoverflow.com/a/21185103
+          var numProjects = user.projects.length;
+          if (numProjects === 0) {
+            deleteUserCleanup(req.user.username, res);
+          } else {
 
-            projectController.deleteProject(req.user, p.title, (ret) => {
+            user.projects.forEach(p => {
 
-              if (ret.code != 200) {
-                return res.status(ret.code).json({msg:ret.msg});
-              }
+              projectController.deleteProject(req.user, p.title, (ret) => {
 
-              // deleted all projects, now remove user
-              if (--numProjects === 0) {
-                deleteUserCleanup(req.user.username, res);
-              }
-            });
-          })
-        }
+                if (ret.code != 200) {
+                  return res.status(ret.code).json({msg:ret.msg});
+                }
+
+                // deleted all projects, now remove user
+                if (--numProjects === 0) {
+                  deleteUserCleanup(req.user.username, res);
+                }
+              });
+            })
+          }
+        })
       }
     })
   }
