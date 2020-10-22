@@ -18,7 +18,7 @@ const auth = require('../middleware/auth')
  *       - application/json
  *     responses:
  *       200:
- *         description: An array containing all projects in the database. The format is [ {username: username, project: projectObject} ]
+ *         description: An array containing all projects in the database. The format is [ {username username, project projectObject} ]
  *       500:
  *         description: Cannot connect to database.
  */
