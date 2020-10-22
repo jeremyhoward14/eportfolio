@@ -148,32 +148,41 @@ const deleteUser = async (req, res) => {
     // user should have been found as it came from jwt, but worth checking
     return res.status(500).json("Server error: could not find user.");
   } else {
-    // delete all attachments related to the user's projects
-    // structure here relates to: https://stackoverflow.com/a/21185103
-    var numProjects = user.projects.length;
-    if (numProjects === 0) {
-      deleteUserAfterProjectsDeleted(req.user.username, res);
-    } else {
+    // delete the user from other users' circles
+    deleteUserFromCircles(user.username, (err, data) => {
+      if (err) {
+        return res.status(500).json({msg:"server error"});
+      } else {
+        
+        // delete all attachments related to the user's projects
+        // structure here relates to: https://stackoverflow.com/a/21185103
+        var numProjects = user.projects.length;
+        if (numProjects === 0) {
+          deleteUserCleanup(req.user.username, res);
+        } else {
 
-      user.projects.forEach(p => {
+          user.projects.forEach(p => {
 
-        projectController.deleteProject(req.user, p.title, (ret) => {
+            projectController.deleteProject(req.user, p.title, (ret) => {
 
-          if (ret.code != 200) {
-            return res.status(ret.code).json({msg:ret.msg});
-          }
+              if (ret.code != 200) {
+                return res.status(ret.code).json({msg:ret.msg});
+              }
 
-          // deleted all projects, now remove user
-          if (--numProjects === 0) {
-            deleteUserAfterProjectsDeleted(req.user.username, res);
-          }
-        });
-      })
-    }
+              // deleted all projects, now remove user
+              if (--numProjects === 0) {
+                deleteUserCleanup(req.user.username, res);
+              }
+            });
+          })
+        }
+      }
+    })
   }
 };
 
-function deleteUserAfterProjectsDeleted(username, res) {
+/* after removing from circles and deleting projects / dp, remove the user from mongo */
+function deleteUserCleanup(username, res) {
   Users.collection.deleteOne({username: username})
   .then(result => {
     return res.status(200).json({msg: "sucessfully deleted user."});
@@ -182,6 +191,17 @@ function deleteUserAfterProjectsDeleted(username, res) {
     return res.status(500).json({msg: result});
   });
 }
+
+/*
+ * find all of the users with this user in their circle and remove this user's name
+ */
+function deleteUserFromCircles(username, callback) {
+  // query finds all users that have `username` in their circle
+  var query = {"circle": { "$in": [username]}}
+  var update = {$pull: {circle: username } }
+  Users.updateMany(query, update, (err, data) => {callback(err, data)})
+}
+
 
 module.exports = {
     getAllUsers,

@@ -124,8 +124,6 @@ const deleteProject = async (user, title, callback) => {
 
     // see if the user has a project by that title
     const search = await Users.findOne({"username": username, "projects.title": { "$in": [title]} })
-    console.log(search);
-    console.log(search.projects[0]);
     if (search) {     // remove it     
         FileHandler.deleteProjectFiles(username, title, (err) => {
           if (err) {
@@ -138,7 +136,7 @@ const deleteProject = async (user, title, callback) => {
               { $pull: { "projects": { "title": title } } }, 
               { useFindAndModify: false }
             ).then( () => {
-              callback({code:200, msg: "Sucessfully deleted project."})
+              callback({code:200, msg: "Successfully deleted project."})
               return;
             }).catch( () => {
               callback({code:500, msg: "could not delete project files"});
