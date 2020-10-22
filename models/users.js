@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    picture: String,
     circle: [String],
     bio: {
         type: String,
@@ -33,7 +34,6 @@ const userSchema = new mongoose.Schema({
             enum: ['JOB_SEARCHER', 'RECRUITER'],
             default: 'JOB_SEARCHER',
         },
-        picture: String,
     },
     projects: [{
         title: String, 

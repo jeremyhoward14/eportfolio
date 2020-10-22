@@ -119,9 +119,8 @@ const uploadDP = (req, res) => {
 
     Users.findOne({username: req.user.username})
         .then( (user) => {
-            // user.bio.picture = url; // throwing errors as bio does not exist, blocked by bio branch
-            // user.save()
-            console.log(url);
+            user.picture = url; // throwing errors as bio does not exist, blocked by bio branch
+            user.save()
             return res.status(201).send(url)
         })
         .catch( () => {
