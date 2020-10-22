@@ -160,4 +160,32 @@ const awsAdaptor = require("../models/aws")
 router.post("/uploadDP", auth, awsAdaptor.uploadDP.single('userFile'), (req, res) => fileHandler.uploadDP(req, res));
 
 
+/**
+ * @swagger
+ * /users/deleteDP:
+ *   post:
+ *     tags:
+ *       - users
+ *     description: deletes the logged in user's DP
+ *       - application/json
+ *     parameters:
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: successfully deleted dp.
+ *       400:
+ *         description: user does not have a dp.
+ *       500:
+ *         description: Server error.
+ */
+router.post("/deleteDP", auth, (req, res) => fileHandler.deleteDPRoute(req, res));
+
+
 module.exports = router;
