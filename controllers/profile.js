@@ -49,12 +49,9 @@ const updateName = async (req, res) => {
     return res.status(200).json({msg: 'Firstname and lastname updated successfully.'});
 }
 
-// dummy method until PR of profile pic upload/delete is approved
-const deleteDP = (u,cb) => { cb(null,null) }
 
 module.exports = {
     getBio,
-    deleteDP,       // dummy
     updateBio,
     updateName
 }

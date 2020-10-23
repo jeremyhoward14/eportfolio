@@ -130,6 +130,8 @@ router.post("/login", async (req, res) => userController.loginUser(req, res));
  * @swagger
  * /users/delete:
  *   post:
+ *     tags:
+ *       - users
  *     description: deletes the logged in user from the database.
  *     consumes:
  *       - application/json

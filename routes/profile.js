@@ -119,7 +119,7 @@ const fileHandler = require("../controllers/files")
 const awsAdaptor = require("../models/aws")
 /**
  * @swagger
- * /users/uploadDP:
+ * /profile/uploadDP:
  *   post:
  *     tags:
  *       - profile
@@ -150,7 +150,7 @@ router.post("/uploadDP", auth, awsAdaptor.uploadDP.single('userFile'), (req, res
 
 /**
  * @swagger
- * /users/deleteDP:
+ * /profile/deleteDP:
  *   post:
  *     tags:
  *       - profile

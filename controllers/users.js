@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 const {registerValidation, loginValidation} = require('../validation');
 const { collection } = require("../models/users");
 const projectController = require("../controllers/projects");
+const fileController = require("../controllers/files")
 
 
 const getAllUsers = (req, res) => {
@@ -141,8 +142,6 @@ const getPublicUserObject = (user) => {
 }
 
 
-profileController = require("../controllers/profile")
-
 /* delete the logged in user, takes in JWT via auth */
 const deleteUser = async (req, res) => {
   const user = await Users.findOne({username: req.user.username});
@@ -157,7 +156,7 @@ const deleteUser = async (req, res) => {
       } else {
         
         // delete the DP from AWS
-        profileController.deleteDP(user.picture, (err) => {
+        fileController.deleteDP(user.picture, (err) => {
           
           if (err) {
             return res.status(err.status).json({msg:err.msg});
