@@ -284,16 +284,68 @@ describe('/POST update project for /projects/delete/{title}', () => {
   */
  describe('/GET users for /projects', () => {
   it('it should GET all the projects', (done) => {
+    let registerUser = {
+      "username": "regCreateProject",
+      "email": "regCreateProject@gmail.com",
+      "password": "regCreateProject",
+      "firstname": "regCreateProject",
+      "lastname": "regCreateProject"
+    }
+    let project1 = {
+        "title": "CreateProject1",
+        "text": "first project!!!",
+        "tags": ["one tag"]
+      }
+    let project2 = {
+      "title": "CreateProject2",
+      "text": "second project!!!",
+      "tags": ["other tag"]
+    }
+
+    // what in callback tarnation is this?
     chai.request(app)
-        .get('/projects')
+    .post('/users/signup')
+    .send(registerUser)
+    .end((err, res) => {
+      res.should.have.status(200);
+      let jwt = res.body.token;
+
+      // create first project
+      chai.request(app)
+        .post('/projects/create')
+        .set('x-auth-token', jwt)
+        .send(project1)
         .end((err, res) => {
-              res.should.have.status(200);
-              res.body.should.be.a('array');
-              expect(res.body[0]).to.have.all.keys('username', 'project');
-              res.body[0].username.should.be.a('string');
-              expect(res.body[0].project).to.have.all.keys('title', 'text', 'tags', 'attachments');
-          done();
-        });
+          res.should.have.status(201);
+          res.body.should.have.property('msg').eql("Created new project and inserted into database.");
+
+          // create second project
+          chai.request(app)
+            .post('/projects/create')
+            .set('x-auth-token', jwt)
+            .send(project2)
+            .end((err, res) => {
+              res.should.have.status(201);
+              res.body.should.have.property('msg').eql("Created new project and inserted into database.");
+
+              // now GET all projects and check the format
+              chai.request(app)
+                .get('/projects')
+                .end((err, res) => {
+                  res.should.have.status(200);
+                  res.body.should.be.a('array');
+                  expect(res.body[0]).to.have.all.keys('username', 'project');
+                  res.body[0].username.should.be.a('string');
+                  expect(res.body[0].project).to.have.all.keys('title', 'text', 'tags', 'attachments');
+
+                  expect(res.body[1]).to.have.all.keys('username', 'project');
+                  res.body[1].username.should.be.a('string');
+                  expect(res.body[1].project).to.have.all.keys('title', 'text', 'tags', 'attachments');
+                  done();
+                });
+            });
+        })
+    });
   });
 });
 /*
