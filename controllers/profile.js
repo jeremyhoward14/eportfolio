@@ -53,6 +53,7 @@ const updateName = async (req, res) => {
     return res.status(200).json({msg: 'Firstname and lastname updated successfully.'});
 }
 
+
 module.exports = {
     getBio,
     updateBio,

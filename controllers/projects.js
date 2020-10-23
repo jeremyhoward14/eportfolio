@@ -110,26 +110,49 @@ const editProject = async (req, res) => {
 };
 
 
-const deleteProject = async (req, res) => {
-    var username = req.user.username; // from jwt
-    var title = req.params.id
+/* wrapper over deleteProject that allows it to be called from a route 
+ * delete a user's project and remove all of the attachments from AWS
+ * req.user comes from jwt from auth 
+ */
+const deleteProjectRoute = async (req, res) => {
+  deleteProject(req.user, req.params.id , (ret) => {
+    return res.status(ret.code).json({msg:ret.msg});
+  })
+}
+
+
+// todo check that this still works for regular delete project, i hope so
+/* delete a user's project and all of the attachments on AWS associated with it */
+const deleteProject = async (user, title, callback) => {
+    var username = user.username;
 
     // see if the user has a project by that title
     const search = await Users.findOne({"username": username, "projects.title": { "$in": [title]} })
     if (search) {     // remove it     
         FileHandler.deleteProjectFiles(username, title, (err) => {
           if (err) {
-            return res.status(500).json({msg: "could not delete project files"});
+            callback({code:500, msg: "could not delete project files"})
+            return
           } else {
-            search.projects = search.projects.filter( el => el.title !== title);
-            search.save()
-            return res.status(200).json( {msg: 'Successfully deleted project.'} );
+            // search.projects = search.projects.filter( el => el.title !== title);
+            // search.save();  // save or update throw concurrency erros / fail
+            Users.findByIdAndUpdate(search._id, 
+              { $pull: { "projects": { "title": title } } }, 
+              { useFindAndModify: false }
+            ).then( () => {
+              callback({code:200, msg: "Successfully deleted project."})
+              return;
+            }).catch( () => {
+              callback({code:500, msg: "could not delete project files"});
+              return
+            })
           }
         })
 
     } else {
         // project does not exist
-        return res.status(404).json( {msg: 'Could not find specified project-id for user.'} ); // we know the user should exist because it was passed in from jwt
+        callback({code:404, msg: 'Could not find specified project-id for user.'} ); // we know the user should exist because it was passed in from jwt
+        return 
     }
 };
 
@@ -167,6 +190,7 @@ const loggedInUserProjects = async (req, res) => {
 module.exports = {
     createProject,
     deleteProject,
+    deleteProjectRoute,
     editProject,
     getAllProjects,
     loggedInUserProjects

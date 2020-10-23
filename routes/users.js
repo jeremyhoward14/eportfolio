@@ -126,47 +126,14 @@ router.post("/signup", (req, res)=> userController.registerUser(req, res));
 router.post("/login", async (req, res) => userController.loginUser(req, res));
 
 
-// temporary location for this route, waiting on profiles
-const fileHandler = require("../controllers/files")
-const awsAdaptor = require("../models/aws")
 /**
  * @swagger
- * /users/uploadDP:
+ * /users/delete:
  *   post:
  *     tags:
  *       - users
- *     description: Uploads profile picture to <aws url>/<username>/dp.<ext>. File comes in as binary data.
- *       - application/json
- *     parameters:
- *       - in: header
- *         name: x-auth-token
- *         required: true
- *         type: string
- *         minimum: 1
- *         description: jwt
- *       - in: formData
- *         name: userFile
- *         required: true
- *         type: file
- *         description: The image to upload.
- *     produces:
- *       - application/json
- *     responses:
- *       201:
- *         description: Returns URL the file was uploaded to.
- *       500:
- *         description: Server error.
- */
-router.post("/uploadDP", auth, awsAdaptor.uploadDP.single('userFile'), (req, res) => fileHandler.uploadDP(req, res));
-
-
-/**
- * @swagger
- * /users/deleteDP:
- *   post:
- *     tags:
- *       - users
- *     description: deletes the logged in user's DP
+ *     description: deletes the logged in user from the database.
+ *     consumes:
  *       - application/json
  *     parameters:
  *       - in: header
@@ -179,13 +146,37 @@ router.post("/uploadDP", auth, awsAdaptor.uploadDP.single('userFile'), (req, res
  *       - application/json
  *     responses:
  *       200:
- *         description: successfully deleted dp.
- *       400:
- *         description: user does not have a dp.
+ *         description: Deletes the user.
  *       500:
- *         description: Server error.
+ *         description: server error.
+ *       
  */
-router.post("/deleteDP", auth, (req, res) => fileHandler.deleteDPRoute(req, res));
+router.post("/delete", auth, async (req, res) => userController.deleteUserRoute(req, res));
 
+
+/**
+ * @swagger
+ * /users/wipeDB:
+ *   post:
+ *     tags:
+ *       - users
+ *     deprecated: true
+ *     description: WIPE THE ENTIRE CIRCLESPACE DATABASE
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: DELETES EVERYTHING.
+ *       500:
+ *         description: server error.
+ *       
+ */
+router.post("/wipeDB", async (req, res) => userController.deleteAllUsers((ret) => {
+    if (ret == null) {
+        res.sendStatus(200)
+    }
+}));
 
 module.exports = router;
