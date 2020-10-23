@@ -170,7 +170,9 @@ chai.request(app)
           res.body.user.should.have.property('lastname');
           res.body.user.should.have.property('projects');
           res.body.user.should.have.property('circle');
-          // res.body.user.should.have.property('bio');
+          // res.body.user.should.have.property('picture');
+          res.body.user.should.have.property('bio');
+          res.body.user.bio.should.have.all.keys('socials', 'category');
 
           done();
         });
@@ -252,7 +254,8 @@ chai.request(app)
             res.body.should.have.property('lastname');
             res.body.should.have.property('projects');
             res.body.should.have.property('circle');
-            // res.body.should.have.property('bio');
+            res.body.should.have.property('bio');
+            // res.body.should.have.property('picture');
           done();
         });
       }) 

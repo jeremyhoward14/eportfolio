@@ -5,6 +5,7 @@ let User = require('../models/users');
 let chai = require('chai');
 let chaiHttp = require('chai-http');
 let app = require('../app');
+const { expect } = require("chai");
 let should = chai.should(); 
 
 
@@ -288,6 +289,9 @@ describe('/POST update project for /projects/delete/{title}', () => {
         .end((err, res) => {
               res.should.have.status(200);
               res.body.should.be.a('array');
+              expect(res.body[0]).to.have.all.keys('username', 'project');
+              res.body[0].username.should.be.a('string');
+              expect(res.body[0].project).to.have.all.keys('title', 'text', 'tags', 'attachments');
           done();
         });
   });
