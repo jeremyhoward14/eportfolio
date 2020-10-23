@@ -37,7 +37,11 @@ const updateName = async (req, res) => {
         return res.status(404).json({msg: 'Could not find username in the database.'});
     }
 
-    if (req.body.firstname.length === 0) {
+    if (req.body.firstname === undefined) {
+        return res.status(400).json({msg: 'Failed. Firstname is undefined.'}); 
+    } else if (req.body.lastname === undefined) {
+        return res.status(400).json({msg: 'Failed. Lastname is undefined.'}); 
+    } else if (req.body.firstname.length === 0) {
         return res.status(400).json({msg: 'Failed. Firstname is an empty string.'}); 
     } else if (req.body.lastname.length === 0) {
         return res.status(400).json({msg: 'Failed. Lastname is an empty string.'});
