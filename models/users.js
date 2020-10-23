@@ -24,6 +24,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    picture: String,
     circle: [String],
     picture: {
         type: String,

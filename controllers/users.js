@@ -133,6 +133,7 @@ const getPublicUserObject = (user) => {
     firstname: user.firstname,
     lastname: user.lastname,
     circle: user.circle,
+    picture: user.picture,
     bio: user.bio,
     projects: user.projects
   };

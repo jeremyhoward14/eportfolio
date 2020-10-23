@@ -113,6 +113,68 @@ const deleteProjectFiles = async (username, projecttitle, callback) => {
 }
 
 
+/* upload new / update user's DP */
+const uploadDP = (req, res) => {
+    var url = req.file.location;
+
+    Users.findOne({username: req.user.username})
+        .then( (user) => {
+            user.picture = url;
+            user.save()
+            return res.status(201).send(url)
+        })
+        .catch( () => {
+            res.status(500).json({msg: "server error"}) 
+        });
+}
+
+
+/* delete a user's DP 
+ * does not access mongoDB
+ * callback has one argument and sends in the form err = {status:int, msg:string}}
+ */
+const deleteDP = (url, callback) => {
+
+    // ensure the file exists first
+    if (!url) {
+        callback({status: 400, msg: "user does not have a dp."})
+        return
+    }
+
+    aws.deleteFile(url, (err) => {
+        if (err) {
+            callback({status:500, msg:err.err});
+            return
+        }
+        callback(null);
+        return
+    })
+}
+
+
+/* route to delete a user's dp
+ * looks up the user based on req.user.username
+ * sets the user's picture to null
+ */
+const deleteDPRoute = (req, res) => {
+    Users.findOne({username: req.user.username})
+    .then( (user) => {
+        deleteDP(user.picture, (err) => {
+            if (err) {
+                return res.status(err.status).json({msg:err.msg});
+            }
+            user.picture = null;
+            user.save();
+            return res.status(200).json({msg:"successfully deleted dp."});
+        })
+    })
+    .catch( () => {
+        res.status(500).json({msg:"server error"})
+    })
+}
+
+
+
 /*
  * @deprecated
  * upload a file to the aws servers, then add it to the mongo db database
@@ -160,5 +222,8 @@ module.exports = {
     uploadFile,
     deleteFile,
     deleteProjectFiles,
+    uploadDP,
+    deleteDP,
+    deleteDPRoute,
     uploadFileFromLocal,
 }
