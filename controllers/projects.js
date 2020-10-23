@@ -134,22 +134,13 @@ const deleteProject = async (req, res) => {
 };
 
 /* get every project in the database 
+   format is {username: username, project: {projectObject}}
    - tested with users with no projects and differing lengths 
  */
 const getAllProjects = async (req, res) => {
   Users.find({})
   .then( users => {
-    /* this bit does a list comprehension
-     * `[].concat.apply([], listcomp)` and `listcomp.flat()` both turn an array of arrays into one
-     * flat is neater but apparently it's newer, is that a concern?
-     * https://stackoverflow.com/a/10865042
-     * edit: after some benchmarking, the concat function seems faster with random strings
-     */
-    // return res.status(200).send(
-    //   users.map( user => {
-    //     return user.projects;
-    //   }).flat(1))
-
+    // make up array: at some point a faster algorithm should be used but this is fine for now 
     projects = [];
     for (var user of users){
       for (var proj of user.projects) {
@@ -157,12 +148,6 @@ const getAllProjects = async (req, res) => {
       }
     }
     return res.status(200).send(projects);
-
-    // var listcomp = users.map(user => {
-    //   return {username: user.username, project: user.projects}
-    // });
-
-    // return res.status(200).send( [].concat.apply([], listcomp) );
   })
   .catch( err => {
     return res.status(500).json({msg: "Cannot connect to database."})
