@@ -170,7 +170,8 @@ const deleteUser = async (username, callback) => {
         // delete the DP from AWS
         fileController.deleteDP(userSearch.picture, (err) => {
           
-          if (err) {
+          if (err && err.msg != 'user does not have a dp.') {
+            /* this error is just caused by the user not having a dp, it doesn't change deletion */
             return callback({status: err.status, msg: err.msg});
           }
 
@@ -227,6 +228,23 @@ function deleteUserFromCircles(username, callback) {
 }
 
 
+/* wipe the entire mongo database and all attachments from AWS */
+const deleteAllUsers = (callback) => {
+  Users.find({}, (err, data) => {
+    var response = null
+    for (var user of data) {
+      if (response === null) {
+        deleteUser(user.username, (ret) => {
+          if (ret.status != 200) {
+            response = ret;
+          }
+        })
+      }
+    }
+    return callback(response)
+  })
+}
+
 module.exports = {
     getAllUsers,
     getOneUser,
@@ -234,4 +252,5 @@ module.exports = {
     loginUser,
     deleteUser,
     deleteUserRoute,
+    deleteAllUsers,
 };

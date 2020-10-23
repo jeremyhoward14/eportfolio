@@ -153,4 +153,30 @@ router.post("/login", async (req, res) => userController.loginUser(req, res));
  */
 router.post("/delete", auth, async (req, res) => userController.deleteUserRoute(req, res));
 
+
+/**
+ * @swagger
+ * /users/wipeDB:
+ *   post:
+ *     tags:
+ *       - users
+ *     deprecated: true
+ *     description: WIPE THE ENTIRE CIRCLESPACE DATABASE
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: DELETES EVERYTHING.
+ *       500:
+ *         description: server error.
+ *       
+ */
+router.post("/wipeDB", async (req, res) => userController.deleteAllUsers((ret) => {
+    if (ret == null) {
+        res.sendStatus(200)
+    }
+}));
+
 module.exports = router;
