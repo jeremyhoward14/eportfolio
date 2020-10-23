@@ -151,6 +151,6 @@ router.post("/login", async (req, res) => userController.loginUser(req, res));
  *         description: server error.
  *       
  */
-router.post("/delete", auth, async (req, res) => userController.deleteUser(req, res));
+router.post("/delete", auth, async (req, res) => userController.deleteUserRoute(req, res));
 
 module.exports = router;

@@ -110,7 +110,10 @@ const editProject = async (req, res) => {
 };
 
 
-/* wrapper over deleteProject that allows it to be called from a route */
+/* wrapper over deleteProject that allows it to be called from a route 
+ * delete a user's project and remove all of the attachments from AWS
+ * req.user comes from jwt from auth 
+ */
 const deleteProjectRoute = async (req, res) => {
   deleteProject(req.user, req.params.id , (ret) => {
     return res.status(ret.code).json({msg:ret.msg});
@@ -119,8 +122,9 @@ const deleteProjectRoute = async (req, res) => {
 
 
 // todo check that this still works for regular delete project, i hope so
+/* delete a user's project and all of the attachments on AWS associated with it */
 const deleteProject = async (user, title, callback) => {
-    var username = user.username; // from jwt
+    var username = user.username;
 
     // see if the user has a project by that title
     const search = await Users.findOne({"username": username, "projects.title": { "$in": [title]} })

@@ -142,44 +142,56 @@ const getPublicUserObject = (user) => {
 }
 
 
-/* delete the logged in user, takes in JWT via auth */
-const deleteUser = async (req, res) => {
-  const user = await Users.findOne({username: req.user.username});
-  if (user == null) {
-    // user should have been found as it came from jwt, but worth checking
-    return res.status(500).json("Server error: could not find user.");
+/* wrapper over deleteUser for routes */
+const deleteUserRoute = async (req, res) => {
+  deleteUser(req.user.username, (ret) => {
+    return res.status(ret.status).json({msg: ret.msg})
+  })
+}
+
+
+/* delete the user given by username, and all attachments stored on AWS S3.
+ * Note that this function DOES NOT have permissions checks, and should be called
+ * via the deleteUserRoute wrapper except for when clearing the database
+ * callback is used to set the res object and should contain {status, msg}
+ */
+const deleteUser = async (username, callback) => {
+  const userSearch = await Users.findOne({username: username});
+  if (userSearch == null) {
+    // user should have been found, but worth checking
+    return callback({status: 500, msg:"Server error: could not find user."});
   } else {
     // delete the user from other users' circles
-    deleteUserFromCircles(user.username, (err, data) => {
+    deleteUserFromCircles(userSearch.username, (err, data) => {
       if (err) {
-        return res.status(500).json({msg:"server error"});
+        return callback({status: 500, msg:"server error"});
       } else {
         
         // delete the DP from AWS
-        fileController.deleteDP(user.picture, (err) => {
+        fileController.deleteDP(userSearch.picture, (err) => {
           
           if (err) {
-            return res.status(err.status).json({msg:err.msg});
+            return callback({status: err.status, msg: err.msg});
           }
 
           // delete all attachments related to the user's projects
           // structure here relates to: https://stackoverflow.com/a/21185103
-          var numProjects = user.projects.length;
+          var numProjects = userSearch.projects.length;
           if (numProjects === 0) {
-            deleteUserCleanup(req.user.username, res);
+            deleteUserCleanup(userSearch.username, callback);
           } else {
 
-            user.projects.forEach(p => {
+            userSearch.projects.forEach(p => {
 
-              projectController.deleteProject(req.user, p.title, (ret) => {
+              projectController.deleteProject(userSearch, p.title, (ret) => {
 
                 if (ret.code != 200) {
-                  return res.status(ret.code).json({msg:ret.msg});
+                  return callback({status: ret.code, msg: ret.msg});
                 }
 
                 // deleted all projects, now remove user
                 if (--numProjects === 0) {
-                  deleteUserCleanup(req.user.username, res);
+                  deleteUserCleanup(userSearch.username, callback);
                 }
               });
             })
@@ -190,19 +202,22 @@ const deleteUser = async (req, res) => {
   }
 };
 
-/* after removing from circles and deleting projects / dp, remove the user from mongo */
-function deleteUserCleanup(username, res) {
+/* after removing from circles and deleting projects / dp, remove the user from mongo
+ * callback is used to set the res object and should contain {status, msg}
+ */
+function deleteUserCleanup(username, callback) {
   Users.collection.deleteOne({username: username})
   .then(result => {
-    return res.status(200).json({msg: "sucessfully deleted user."});
+    return callback({status: 200, msg: "sucessfully deleted user."});
   })
   .catch(result => {
-    return res.status(500).json({msg: result});
+    return callback({status: 500, msg: result});
   });
 }
 
 /*
  * find all of the users with this user in their circle and remove this user's name
+ * callback has two fields {err, data}
  */
 function deleteUserFromCircles(username, callback) {
   // query finds all users that have `username` in their circle
@@ -217,5 +232,6 @@ module.exports = {
     getOneUser,
     registerUser,
     loginUser,
-    deleteUser
+    deleteUser,
+    deleteUserRoute,
 };
