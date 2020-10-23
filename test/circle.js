@@ -10,7 +10,7 @@ let should = chai.should();
 
 chai.use(chaiHttp);
 //Our parent block
-describe('Projects', () => {
+describe('Circles', () => {
     beforeEach((done) => { //Before each test we empty the database
         User.deleteOne({}, (err) => {
            done();
