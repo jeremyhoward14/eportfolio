@@ -55,9 +55,17 @@ router.get("/bio/:username", (req, res) => profileController.getBio(req, res));
  *         schema:
  *           type: object
  *           required:
- *             - bio
+ *             - text
+ *             - socials
+ *             - category
  *           properties:
- *             bio:
+ *             text:
+ *               type: string
+ *             socials:
+ *               type: array
+ *               items:
+ *                 type: string
+ *             category:
  *               type: string
  *     produces:
  *       - application/json

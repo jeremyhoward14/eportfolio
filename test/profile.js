@@ -87,6 +87,46 @@ describe('/GET bio for profile/bio/{username}', () => {
 })
 
 
+/* test POST route for bio update */
+describe('POST bio updates for profile/bio/update', () => {
+    it("it should update bio with all three fields given ", (done) => {
+        let username = "profileBioUpdateSuccess";
+        let update = {
+            text: "new bio for user",
+            socials: ["facebook.com/john-smith", "linkdin.com/john-1"],
+            category: "RECRUITER"
+        }
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token;
+            chai.request(app)
+            .post('/profile/bio/update')
+            .set('x-auth-token', jwt)
+            .send(update)
+            .end((err, res) => {
+                res.should.have.status(200)
+                res.body.should.have.property("msg").eql("Bio updated successfully.")
+
+                // ensure that the details correctly updated
+                Users.findOne({username: username})
+                    .then((search) => {
+                        search.should.have.property('bio')
+                        search.bio.should.have.property('text').eql(update.text)
+                        search.bio.should.have.property('category').eql(update.category)
+                        search.bio.should.have.property('socials').eql(update.socials)
+                        done()
+                    })
+            })
+        })
+    })
+
+
+    // it("it should fail update if category is not in the enum")
+
+    // it("it should allow updates with some properties missing")
+
+    // it("it should not allow duplicate links to the same social media")
+})
+
 /* test the POST route updates */
 
 describe('/POST update bio for /profiles/name/update', () => {
