@@ -221,7 +221,7 @@ describe('/POST upload DP for /profiles/uploadDP', () => {
             let jwt = res.body.token
 
             // upload the image and check that it worked
-            testUploadDP(username, jwt, 'media/profile pic sample 1.png', 201, 200, (err, res) => {
+            testUploadDP(username, jwt, 'media/profile pic sample 1.jpeg', 201, 200, (err, res) => {
                 done()
             })
 
@@ -229,7 +229,7 @@ describe('/POST upload DP for /profiles/uploadDP', () => {
     })
 
 
-    it("it should fail when a file is not provided", () => {
+    it("it should fail when a file is not provided", (done) => {
         let username = "profileUploadDPFailureNoFileProvided";
         signUpUserAndTest(username, (err, res) => {
             let jwt = res.body.token
@@ -241,14 +241,14 @@ describe('/POST upload DP for /profiles/uploadDP', () => {
         })
     })
 
-    it("it should allow overwriting an existing file", () => {
+    it("it should allow overwriting an existing file", (done) => {
         let username = "profileUploadDPSuccessOverwriting";
 
         signUpUserAndTest(username, (err, res) => {
             let jwt = res.body.token
             // upload twice, expect both to pass
-            testUploadDP(username, jwt, 'media/profile pic sample 1.png', 201, 200, (err, res) => {
-                testUploadDP(username, jwt, 'media/profile pic sample 2.png', 201, 200, (err, res) => {
+            testUploadDP(username, jwt, 'media/profile pic sample 1.jpeg', 201, 200, (err, res) => {
+                testUploadDP(username, jwt, 'media/profile pic sample 2.jpeg', 201, 200, (err, res) => {
                     done()
                 })
             })
