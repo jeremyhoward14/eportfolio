@@ -68,7 +68,7 @@ describe('/GET bio for profile/bio/{username}', () => {
             chai.request(app)
                 .get("/profile/bio/" + newUser)
                 .end((err, res) => {
-                    res.body.should.have.all.keys("socials", "category");
+                    res.body.should.have.all.keys("socials", "category", "text");
                     done()
                 })
         })
