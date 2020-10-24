@@ -142,6 +142,8 @@ const awsAdaptor = require("../models/aws")
  *     responses:
  *       201:
  *         description: Returns URL the file was uploaded to.
+ *       400:
+ *         description: No file provided.
  *       500:
  *         description: Server error.
  */
