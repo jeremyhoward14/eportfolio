@@ -6,6 +6,7 @@ let chai = require('chai');
 let chaiHttp = require('chai-http');
 let app = require('../app');
 const { expect } = require("chai");
+const verifyProjectExists = require("../middleware/verifyProjectExists");
 let should = chai.should(); 
 
 chai.use(chaiHttp);
@@ -50,6 +51,18 @@ function logInUserAndTest(username, cb) {
 }
 
 
+/* check if a file exists / doesn't exist on AWS S3 based on its filekey */
+function verifyFileOnAWS(filekey, status, cb) {
+    chai.request("https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/")
+        .get(filekey)
+        .end((err, res) => {
+            res.should.have.status(status)
+            cb(err, res)
+        })
+}
+
+
+
 //Our parent block
 describe('Profiles', () => {
     beforeEach((done) => { //Before each test we empty the database
@@ -87,10 +100,10 @@ describe('/GET bio for profile/bio/{username}', () => {
 })
 
 
-/* test the POST route updates */
+/* test the POST route name updates */
 
 describe('/POST update bio for /profiles/name/update', () => {
-    var newUser = "bioChangeName";
+    var newUser = "profileBioChangeNameSuccess";
     var validNewName = {
         firstname: "validFirstName",
         lastname: "validLastName"
@@ -125,7 +138,7 @@ describe('/POST update bio for /profiles/name/update', () => {
     })
 
     it("it should not allow a change if first name has length 0", (done) => {
-        logInUserAndTest( newUser, (err, res) => {
+        signUpUserAndTest("profileBioChangeNameFailureFirstNameLength", (err, res) => {
             let jwt = res.body.token;
             let newName = { 
                 firstname: "",
@@ -143,7 +156,7 @@ describe('/POST update bio for /profiles/name/update', () => {
     })
 
     it("it should not allow a change if last name has length 0", (done) => {
-        signUpUserAndTest(newUser, (err, res) => {
+        signUpUserAndTest("profileBioChangeNameFailureLastNameLength", (err, res) => {
             let jwt = res.body.token;
             let newName = { 
                 firstname: "validFirstName",
@@ -161,7 +174,7 @@ describe('/POST update bio for /profiles/name/update', () => {
     })
 
     it("it should reject a change if one of the name fields is missing", (done) => {
-        signUpUserAndTest(newUser, (err, res) => {
+        signUpUserAndTest("profileBioChangeNameFailureMissingField", (err, res) => {
             let jwt = res.body.token;
             let newName = { 
                 firstname: "validFirstName"
@@ -180,6 +193,102 @@ describe('/POST update bio for /profiles/name/update', () => {
 
 
     })
+
+
+
+/* test the POST route to upload DPs */
+describe('/POST upload DP for /profiles/uploadDP', () => {
+    it("it should successfully upload a DP", (done) => {
+        signUpUserAndTest("profileUploadDPSuccess", (err, res) => {
+            let jwt = res.body.token
+
+            // upload the image
+            chai.request(app)
+                .post("/profile/uploadDP")
+                .set('x-auth-token', jwt)
+                .attach('userFile', 'media/profile pic sample 1.png')
+                .end((err, res) => {
+                    res.should.have.status(201)
+
+                    // verify that we can actually find the image on the internet
+                    verifyFileOnAWS("profileUploadDPSuccess/dp", 200, (err, res) => {
+                        done()
+                    })
+                })
+        })
+    })
+
+    // it("it should fail when uploading a pdf", () => {
+    //     signUpUserAndTest("profileUploadDPFailureFileType", (err, res) => {
+    //         let jwt = res.body.token
+
+    //         chai.request(app)
+    //             .post("/profile/uploadDP")
+    //             .set('x-auth-token', jwt)
+    //             .attach('userFile', 'te1.pdf')
+    //             .end((err, res) => {
+    //                 res.should.have.status(201)
+
+    //                 // verify that we can actually find the image on the internet
+    //                 verifyFileOnAWS("profileUploadDPFailureFileType/dp", 200, (err, res) => {
+    //                     done()
+    //                 })
+    //             })
+
+    //     })
+    // })
+
+
+    it("it should fail when a file is not provided", () => {
+        let username = "profileUploadDPFailureNoFileProvided";
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token
+
+            // upload the image
+            chai.request(app)
+                .post("/profile/uploadDP")
+                .set('x-auth-token', jwt)
+                .attach('userFile', '')
+                .end((err, res) => {
+                    res.should.have.status(400)
+
+                    // make sure there's no file on AWS
+                    verifyFileOnAWS(username + '/dp', 403, (err, res) => {
+                        done()
+                    })
+                })
+        })
+    })
+
+    it("it should allow overwriting an existing file", () => {
+        let username = "profileUploadDPSuccessOverwriting";
+
+        function testUploadDP(username, jwt, filename, cb) {
+            // upload the image
+            chai.request(app)
+                .post("/profile/uploadDP")
+                .set('x-auth-token', jwt)
+                .attach('userFile', filename)
+                .end((err, res) => {
+                    res.should.have.status(201)
+
+                    // verify that we can actually find the image on the internet
+                    verifyFileOnAWS(username + "/dp", 200, (err, res) => {
+                        cb(err, res)
+                    })
+                })
+        }
+
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token
+            testUploadDP(username, jwt, 'media/profile pic sample 1.png', (err, res) => {
+                testUploadDP(username, jwt, 'media/profile pic sample 2.png', (err, res) => {
+                    done()
+                })
+            })
+        })
+    })
+})
 
 });
 
