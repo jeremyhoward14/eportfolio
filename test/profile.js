@@ -61,6 +61,23 @@ function verifyFileOnAWS(filekey, status, cb) {
         })
 }
 
+/* upload a DP and then test that it uploaded */
+function testUploadDP(username, jwt, filename, uploadStatus, existsStatus, cb) {
+    // upload the image
+    chai.request(app)
+        .post("/profile/uploadDP")
+        .set('x-auth-token', jwt)
+        .attach('userFile', filename)
+        .end((err, res) => {
+            res.should.have.status(uploadStatus)
+
+            // verify that we can actually find the image on the internet
+            verifyFileOnAWS(username + "/dp", existsStatus, (err, res) => {
+                cb(err, res)
+            })
+        })
+}
+
 
 
 //Our parent block
@@ -199,90 +216,39 @@ describe('/POST update bio for /profiles/name/update', () => {
 /* test the POST route to upload DPs */
 describe('/POST upload DP for /profiles/uploadDP', () => {
     it("it should successfully upload a DP", (done) => {
-        signUpUserAndTest("profileUploadDPSuccess", (err, res) => {
+        let username = "profileUploadDPSuccess";
+        signUpUserAndTest(username, (err, res) => {
             let jwt = res.body.token
 
-            // upload the image
-            chai.request(app)
-                .post("/profile/uploadDP")
-                .set('x-auth-token', jwt)
-                .attach('userFile', 'media/profile pic sample 1.png')
-                .end((err, res) => {
-                    res.should.have.status(201)
+            // upload the image and check that it worked
+            testUploadDP(username, jwt, 'media/profile pic sample 1.png', 201, 200, (err, res) => {
+                done()
+            })
 
-                    // verify that we can actually find the image on the internet
-                    verifyFileOnAWS("profileUploadDPSuccess/dp", 200, (err, res) => {
-                        done()
-                    })
-                })
         })
     })
-
-    // it("it should fail when uploading a pdf", () => {
-    //     signUpUserAndTest("profileUploadDPFailureFileType", (err, res) => {
-    //         let jwt = res.body.token
-
-    //         chai.request(app)
-    //             .post("/profile/uploadDP")
-    //             .set('x-auth-token', jwt)
-    //             .attach('userFile', 'te1.pdf')
-    //             .end((err, res) => {
-    //                 res.should.have.status(201)
-
-    //                 // verify that we can actually find the image on the internet
-    //                 verifyFileOnAWS("profileUploadDPFailureFileType/dp", 200, (err, res) => {
-    //                     done()
-    //                 })
-    //             })
-
-    //     })
-    // })
 
 
     it("it should fail when a file is not provided", () => {
         let username = "profileUploadDPFailureNoFileProvided";
         signUpUserAndTest(username, (err, res) => {
             let jwt = res.body.token
+            // upload with no filename and expect statuses of fail, forbidden
+            testUploadDP(username, jwt, '', 400, 403, (err, res) => {
+                done()
+            })
 
-            // upload the image
-            chai.request(app)
-                .post("/profile/uploadDP")
-                .set('x-auth-token', jwt)
-                .attach('userFile', '')
-                .end((err, res) => {
-                    res.should.have.status(400)
-
-                    // make sure there's no file on AWS
-                    verifyFileOnAWS(username + '/dp', 403, (err, res) => {
-                        done()
-                    })
-                })
         })
     })
 
     it("it should allow overwriting an existing file", () => {
         let username = "profileUploadDPSuccessOverwriting";
 
-        function testUploadDP(username, jwt, filename, cb) {
-            // upload the image
-            chai.request(app)
-                .post("/profile/uploadDP")
-                .set('x-auth-token', jwt)
-                .attach('userFile', filename)
-                .end((err, res) => {
-                    res.should.have.status(201)
-
-                    // verify that we can actually find the image on the internet
-                    verifyFileOnAWS(username + "/dp", 200, (err, res) => {
-                        cb(err, res)
-                    })
-                })
-        }
-
         signUpUserAndTest(username, (err, res) => {
             let jwt = res.body.token
-            testUploadDP(username, jwt, 'media/profile pic sample 1.png', (err, res) => {
-                testUploadDP(username, jwt, 'media/profile pic sample 2.png', (err, res) => {
+            // upload twice, expect both to pass
+            testUploadDP(username, jwt, 'media/profile pic sample 1.png', 201, 200, (err, res) => {
+                testUploadDP(username, jwt, 'media/profile pic sample 2.png', 201, 200, (err, res) => {
                     done()
                 })
             })
