@@ -14,7 +14,7 @@ const updateBio = async (req, res) => {
     //from the auth middleware, having jwt in header returns username
 
     //get user information from the username
-    const user = await Users.findOne({ username: req.user.username});
+    var user = await Users.findOne({ username: req.user.username})
     if (!user) {
         return res.status(404).json({msg: 'Could not find username in the database.'});
     }
