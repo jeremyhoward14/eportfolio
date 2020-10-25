@@ -6,7 +6,6 @@ let chai = require('chai');
 let chaiHttp = require('chai-http');
 let app = require('../app');
 const { expect } = require("chai");
-const verifyProjectExists = require("../middleware/verifyProjectExists");
 let should = chai.should(); 
 
 chai.use(chaiHttp);
@@ -122,7 +121,110 @@ describe('/GET bio for profile/bio/{username}', () => {
 })
 
 
-/* test the POST route name updates */
+/* test POST route for bio update */
+describe('POST bio updates for profile/bio/update', () => {
+
+    it("it should update bio with all three fields given ", (done) => {
+        let username = "profileBioUpdateSuccess";
+        let update = {
+            text: "new bio for user",
+            socials: ["facebook.com/john-smith", "linkdin.com/john-1"],
+            category: "RECRUITER"
+        }
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token;
+            chai.request(app)
+            .post('/profile/bio/update')
+            .set('x-auth-token', jwt)
+            .send(update)
+            .end((err, res) => {
+                res.should.have.status(200)
+                res.body.should.have.property("msg").eql("Bio updated successfully.")
+
+                // ensure that the details correctly updated
+                Users.findOne({username: username})
+                    .then((search) => {
+                        search.should.have.property('bio')
+                        search.bio.should.have.property('text').eql(update.text)
+                        search.bio.should.have.property('category').eql(update.category)
+                        search.bio.should.have.property('socials').eql(update.socials)
+                        done()
+                    })
+            })
+        })
+    })
+
+    
+    // it("it should fail update if category is not in the enum")
+    
+    it("it should allow updates with some properties missing", (done) => {
+        let username = "profileBioUpdateMissingProps"
+        let update = {
+            // no text or socials here
+            category: "RECRUITER"
+        }
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token;
+            chai.request(app)
+                .post('/profile/bio/update')
+                .set('x-auth-token', jwt)
+                .send(update)
+                .end((err, res) => {
+                    res.should.have.status(200)
+                    res.body.should.have.property("msg").eql("Bio updated successfully.")
+
+                    // ensure that the details correctly updated
+                    Users.findOne({username: username})
+                        .then((search) => {
+                            search.should.have.property('bio')
+                            search.bio.should.have.property('text').eql("")
+                            search.bio.should.have.property('category').eql(update.category)
+                            search.bio.should.have.property('socials').eql([])
+                            done()
+                        })
+                })
+                        
+        })
+    })
+
+    it("it should not allow duplicate links to the same social media", (done) => {
+        let username = "profileBioUpdateDuplicateSocials";
+        let update1 = { socials: ["facebook.com/username", "linkdin.com/username"] };
+        let update2 = { socials: ["facebook.com/username", "linkdin.com/username", "facebook.com/username"] };
+
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token;
+            // set the initial state of socials
+            chai.request(app)
+                .post('/profile/bio/update')
+                .set('x-auth-token', jwt)
+                .send(update1)
+                .end((err, res) => {
+                    res.should.have.status(200)
+                    res.body.should.have.property("msg").eql("Bio updated successfully.")
+
+                        // try to update socials
+                        chai.request(app)
+                            .post('/profile/bio/update')
+                            .set('x-auth-token', jwt)
+                            .send(update2)
+                            .end((err, res) => {
+                                res.should.have.status(200)
+                                res.body.should.have.property("msg").eql("Bio updated successfully.")
+
+                                // The next facebook link shouldn't have made a difference
+                                Users.findOne({username: username})
+                                .then((search) => {
+                                    search.bio.should.have.property('socials').eql(update1.socials)
+                                    done()
+                                })
+                        })
+                })
+        })
+    })
+})
+
+/* test the POST route for name updates */
 
 describe('/POST update bio for /profiles/name/update', () => {
     var newUser = "profileBioChangeNameSuccess";

@@ -14,16 +14,26 @@ const updateBio = async (req, res) => {
     //from the auth middleware, having jwt in header returns username
 
     //get user information from the username
-    const user = await Users.findOne({ username: req.user.username});
+    var user = await Users.findOne({ username: req.user.username})
     if (!user) {
         return res.status(404).json({msg: 'Could not find username in the database.'});
     }
 
-    if (req.body.bio.length === 0) {
-        return res.status(400).json({msg: 'Can not update to empty bio.'}); 
+    if (req.body.text) {
+        user.bio.text = req.body.text;
+    } 
+
+    if (req.body.socials) {
+        // remove duplicate links
+        user.bio.socials = req.body.socials.filter( (elem, pos) => {
+            return req.body.socials.indexOf(elem) == pos;
+        })
     }
 
-    user.bio.text = req.body.bio;
+    if (req.body.category) {
+        user.bio.category = req.body.category;
+    }
+
     user.save();
     return res.status(200).json({msg: 'Bio updated successfully.'});
 }
