@@ -68,6 +68,10 @@ const registerUser = async (req, res) => {
           lastname
         });
 
+        // set non-object properties that shouldn't have values yet
+        newUser.picture = ""
+        newUser.bio.text = ""
+
         //create hashed password
         bcrypt.genSalt(10, (err, salt) => {
           bcrypt.hash(newUser.password, salt, (err, hash) => {
@@ -84,14 +88,7 @@ const registerUser = async (req, res) => {
                     if(err) throw err;
                       res.json({
                         token,
-                        user: {
-                          id: user.id,
-                          username: user.username,
-                          email:user.email,
-                          firstname: user.firstname,
-                          lastname: user.lastname,
-                          projects: user.projects
-                        }
+                        user: getPublicUserObject(user)
                       });
                   }
                 )
