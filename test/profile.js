@@ -6,6 +6,7 @@ let chai = require('chai');
 let chaiHttp = require('chai-http');
 let app = require('../app');
 const { expect } = require("chai");
+const verifyProjectExists = require("../middleware/verifyProjectExists");
 let should = chai.should(); 
 
 chai.use(chaiHttp);
@@ -30,24 +31,58 @@ function signUpUserAndTest(username, cb) {
         })
 }
 
-/* for some reason we sometimes need to use logIn as opposed to signup, 
- * all you need to do is switch out the name if it doesn't work */
-function logInUserAndTest(username, cb) {
-    let user = {
-        "email": username + "@email.com",
-        "password": username + "password",
-    }
-    chai.request(app)
-    .post('/users/login')
-    .send(user)
-    .end((err, res) => {
-        // don't have to do the rest of the verification here because that's 
-        // covered in users tests, just need to make sure it succeded
-        res.should.have.status(200)
-        cb(err, res)
-    })
 
+/* check if a file exists / doesn't exist on AWS S3 based on its filekey 
+ * @param status: 200 for file exists, 403 for file does not exist
+ */
+function verifyFileOnAWS(filekey, status, cb) {
+    chai.request("https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/")
+        .get(filekey)
+        .end((err, res) => {
+            res.should.have.status(status)
+            cb(err, res)
+        })
 }
+
+/* upload a DP and then test that it uploaded 
+ * @param uploadStatus: 200 for successful upload, 400 for no file present, 500 for server error
+ * @param status: 200 for file exists, 403 for file does not exist
+ */
+function testUploadDP(username, jwt, filename, uploadStatus, existsStatus, cb) {
+    // upload the image
+    chai.request(app)
+        .post("/profile/uploadDP")
+        .set('x-auth-token', jwt)
+        .attach('userFile', filename)
+        .end((err, res) => {
+            res.should.have.status(uploadStatus)
+
+            // verify that we can actually find the image on the internet
+            verifyFileOnAWS(username + "/dp", existsStatus, (err, res) => {
+                cb(err, res)
+            })
+        })
+}
+
+/* delete a DP and then test that it deleted
+ * @param deleteStatus: 200 for successful deletion, 400 for user does not have dp
+ * @param existsStatus: 200 for file exists, 403 for file does not exist
+ */
+function testDeleteDP(username, jwt, deleteStatus, existsStatus, cb) {
+    // upload the dp
+    chai.request(app)
+        .post("/profile/deleteDP")
+        .set('x-auth-token', jwt)
+        .end((err, res) => {
+            res.should.have.status(deleteStatus)
+
+            // verify that we can no longer find the image on AWS
+            verifyFileOnAWS(username + "/dp", existsStatus, (err, res) => {
+                cb(err, res)
+            })
+        })
+}
+
 
 
 //Our parent block
@@ -87,10 +122,10 @@ describe('/GET bio for profile/bio/{username}', () => {
 })
 
 
-/* test the POST route updates */
+/* test the POST route name updates */
 
 describe('/POST update bio for /profiles/name/update', () => {
-    var newUser = "bioChangeName";
+    var newUser = "profileBioChangeNameSuccess";
     var validNewName = {
         firstname: "validFirstName",
         lastname: "validLastName"
@@ -125,7 +160,7 @@ describe('/POST update bio for /profiles/name/update', () => {
     })
 
     it("it should not allow a change if first name has length 0", (done) => {
-        logInUserAndTest( newUser, (err, res) => {
+        signUpUserAndTest("profileBioChangeNameFailureFirstNameLength", (err, res) => {
             let jwt = res.body.token;
             let newName = { 
                 firstname: "",
@@ -143,7 +178,7 @@ describe('/POST update bio for /profiles/name/update', () => {
     })
 
     it("it should not allow a change if last name has length 0", (done) => {
-        signUpUserAndTest(newUser, (err, res) => {
+        signUpUserAndTest("profileBioChangeNameFailureLastNameLength", (err, res) => {
             let jwt = res.body.token;
             let newName = { 
                 firstname: "validFirstName",
@@ -161,7 +196,7 @@ describe('/POST update bio for /profiles/name/update', () => {
     })
 
     it("it should reject a change if one of the name fields is missing", (done) => {
-        signUpUserAndTest(newUser, (err, res) => {
+        signUpUserAndTest("profileBioChangeNameFailureMissingField", (err, res) => {
             let jwt = res.body.token;
             let newName = { 
                 firstname: "validFirstName"
@@ -180,6 +215,83 @@ describe('/POST update bio for /profiles/name/update', () => {
 
 
     })
+
+
+
+/* test the POST route to upload DPs */
+describe('/POST upload DP for /profiles/uploadDP', () => {
+    it("it should successfully upload a DP", (done) => {
+        let username = "profileUploadDPSuccess";
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token
+
+            // upload the image and check that it worked
+            testUploadDP(username, jwt, 'media/profile pic sample 1.jpeg', 201, 200, (err, res) => {
+                done()
+            })
+
+        })
+    })
+
+
+    it("it should fail when a file is not provided", (done) => {
+        let username = "profileUploadDPFailureNoFileProvided";
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token
+            // upload with no filename and expect statuses of fail, forbidden
+            testUploadDP(username, jwt, '', 400, 403, (err, res) => {
+                done()
+            })
+
+        })
+    })
+
+    it("it should allow overwriting an existing file", (done) => {
+        let username = "profileUploadDPSuccessOverwriting";
+
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token
+            // upload twice, expect both to pass
+            testUploadDP(username, jwt, 'media/profile pic sample 1.jpeg', 201, 200, (err, res) => {
+                testUploadDP(username, jwt, 'media/profile pic sample 2.jpeg', 201, 200, (err, res) => {
+                    done()
+                })
+            })
+        })
+    })
+})
+
+
+/* test the POST route to upload DPs */
+describe('/POST delete DP for /profiles/deleteDP', () => {
+    it("it should successfully delete a DP", (done) => {
+        let username = "profileDeleteDPSuccess";
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token
+
+            // need upload the image and check that it worked first
+            testUploadDP(username, jwt, 'media/profile pic sample 1.jpeg', 201, 200, (err, res) => {
+                testDeleteDP(username, jwt, 200, 403, (err, res) => {
+                    done()
+                })
+            })
+
+        })
+    })
+
+    it("it should not delete a DP if none exists", (done) => {
+        let username = "profiledeleteDPFail";
+        signUpUserAndTest(username, (err, res) => {
+            let jwt = res.body.token
+
+            // try to delete a non-existant dp
+            testDeleteDP(username, jwt, 400, 403, (err, res) => {
+                done()
+            })
+
+        })
+    })
+});
 
 });
 

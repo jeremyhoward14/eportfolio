@@ -115,6 +115,8 @@ const deleteProjectFiles = async (username, projecttitle, callback) => {
 
 /* upload new / update user's DP */
 const uploadDP = (req, res) => {
+    if (req.file === undefined) return res.status(400).json({msg:"No file provided."})
+    
     var url = req.file.location;
 
     Users.findOne({username: req.user.username})
