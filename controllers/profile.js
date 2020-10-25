@@ -19,14 +19,15 @@ const updateBio = async (req, res) => {
         return res.status(404).json({msg: 'Could not find username in the database.'});
     }
 
-    if (req.body.text && req.body.text.length === 0) {
-        return res.status(400).json({msg: 'Can not update to empty bio.'}); 
-    } else {
+    if (req.body.text) {
         user.bio.text = req.body.text;
-    }
+    } 
 
     if (req.body.socials) {
-        user.bio.socials = req.body.socials;
+        // remove duplicate links
+        user.bio.socials = req.body.socials.filter( (elem, pos) => {
+            return req.body.socials.indexOf(elem) == pos;
+        })
     }
 
     if (req.body.category) {

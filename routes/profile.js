@@ -39,7 +39,7 @@ router.get("/bio/:username", (req, res) => profileController.getBio(req, res));
  *   post:
  *     tags:
  *       - profile
- *     description: Update a bio
+ *     description: Update a bio. Category are values from the user enum, currently "JOB_SEARCHER" AND "RECRUITER". socials is an array of social media links, and duplicates are removed on insertion.
  *     consumes:
  *       - application/json
  *     parameters:
@@ -73,7 +73,7 @@ router.get("/bio/:username", (req, res) => profileController.getBio(req, res));
  *       200:
  *         description: Successfully updated the bio
  *       400:
- *         description: Bio was empty.
+ *         description: Category was not in the allowed options.
  *       404:
  *         description: User could not be found in database.
  */
