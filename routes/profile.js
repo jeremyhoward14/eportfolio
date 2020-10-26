@@ -73,7 +73,7 @@ router.get("/bio/:username", (req, res) => profileController.getBio(req, res));
  *       200:
  *         description: Successfully updated the bio
  *       400:
- *         description: Category was not in the allowed options.
+ *         description: Invalid value for category enum, bio not updated.
  *       404:
  *         description: User could not be found in database.
  */

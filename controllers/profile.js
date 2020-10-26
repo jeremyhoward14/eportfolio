@@ -34,8 +34,14 @@ const updateBio = async (req, res) => {
         user.bio.category = req.body.category;
     }
 
-    user.save();
-    return res.status(200).json({msg: 'Bio updated successfully.'});
+    user.save()
+    .then(() => {
+        return res.status(200).json({msg: 'Bio updated successfully.'})
+    })
+    .catch(() => {
+        // doesn't update the document, returns error
+        return res.status(400).json({msg: 'Invalid value for category enum, bio not updated.'})
+    })
 }
 
 const updateName = async (req, res) => {
