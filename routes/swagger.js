@@ -15,4 +15,6 @@
  *      description: Everything to do with files.
  *    - name: circles
  *      description: Everything to do with circles.
+ *    - name: posts
+ *      description: posts route.
  */
