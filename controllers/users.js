@@ -242,6 +242,30 @@ const deleteAllUsers = (callback) => {
   })
 }
 
+const changePassword = async (req, res) => {
+  //from the auth middleware, having jwt in header returns username
+
+  //get user information from the username
+  const user = await Users.findOne({ username: req.user.username});
+  if(!user) return res.status(400).json({msg: 'Could not find username in database'});
+
+  const validPass = await bcrypt.compare(req.body.oldPassword, user.password);
+  if(!validPass) return res.status(400).json({msg: 'Password is incorrect'});
+
+  if(req.body.newPassword.length < 2){
+    return res.status(400).json({msg: 'Password needs to be longer than 2 characters!'});
+  }
+  
+  bcrypt.genSalt(10, (err, salt) => {
+    bcrypt.hash(req.body.newPassword, salt, (err, hash) => {
+      if(err) throw err;
+      user.password = hash;
+      user.save()
+      return res.status(200).json({msg: 'Password successfully changed'});
+    })
+  })
+};
+
 module.exports = {
     getAllUsers,
     getOneUser,
@@ -251,4 +275,5 @@ module.exports = {
     deleteUserRoute,
     deleteAllUsers,
     getPublicUserObject,
+    changePassword
 };
