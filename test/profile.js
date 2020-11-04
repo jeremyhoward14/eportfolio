@@ -1,5 +1,6 @@
 let mongoose = require("mongoose");
 let Users = require('../models/users');
+let userController = require('../controllers/users');
 
 //Require the dev-dependencies
 let chai = require('chai');
@@ -87,8 +88,11 @@ function testDeleteDP(username, jwt, deleteStatus, existsStatus, cb) {
 //Our parent block
 describe('Profiles', () => {
     beforeEach((done) => { //Before each test we empty the database
-        Users.deleteOne({}, (err) => {
-           done();
+        userController.deleteAllUsers( (status) => {
+            if (status != 200) {
+                console.log("error deleting database (code " + status + ")")
+            }
+            done();
         });
     });
 
