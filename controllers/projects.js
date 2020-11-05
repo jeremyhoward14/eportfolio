@@ -8,7 +8,7 @@ const createProject = async (req, res) => {
     var tags = req.body.tags;
 
     // constraint on project naming, must be >= 3 chars
-    if (title.length <= 3) {
+    if (title.length < 3) {
         return res.status(400).json({msg:"project name must be >= 3 characters"});
     }
 
