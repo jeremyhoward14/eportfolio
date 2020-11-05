@@ -1,4 +1,5 @@
 const Users = require('../models/users');
+const nodemailer = require('nodemailer');
 
 const getCircle = (req, res) => {
     Users.findOne({ username: req.params.id})
@@ -37,8 +38,27 @@ const addToCircle = async (req, res) => {
             Users.findByIdAndUpdate(user._id, 
               { $push: { "circle": req.params.friend} }, 
               { useFindAndModify: false }
-            ).then( () => {
-              return res.status(200).json({msg: "You have added " + user2.username + " to your circle!"})
+            ).then( async() => {
+                // create reusable transporter object using the default SMTP transport
+                let transporter = nodemailer.createTransport({
+                  service: 'Gmail',
+                  auth: {
+                      user: process.env.CIRCLESPACE_EMAIL,
+                      pass: process.env.CIRCLESPACE_PASSWORD
+                  }
+                });
+
+                // send mail with defined transport object
+                let info = await transporter.sendMail({
+                  from: '"CircleSpace Support" <circlespace123@gmail.com>', // sender address
+                  to: user2.email, // list of receivers
+                  subject: user2.username+ ", someone has added you to their Circle!", // Subject line
+                  text: "Hey there! \n\n" +user.username+ " has added you to their Circle! Add them back! \n" + 
+                  "Please click on the following link, or paste this into your browser to return to your profile: \n" +
+                  "https://circlespace.herokuapp.com/login", 
+                });
+
+                return res.status(200).json({msg: "You have added " + user2.username + " to your circle!"})
             }).catch( () => {
               return res.status(404).json({msg: 'Could not find username in database'})
             })
