@@ -44,8 +44,9 @@ function signUpUserAndTest(username, cb) {
  * @param status: 200 for file exists, 403 for file does not exist
  */
 function verifyFileOnAWS(filekey, status, cb) {
-    console.log(filekey)
     chai.request("https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/")
+        // this GET request isn't the most robust it could be w.r.t. .env values, but it's fine for now
+        // want to chop off the front half and get the file key, stops us having to import awsAdaptor functions
         .get(filekey.replace("https://circlespace-uploads.s3.ap-southeast-2.amazonaws.com/", ""))
         .end((err, res) => {
             res.should.have.status(status)
@@ -85,6 +86,8 @@ function testCreateProject(projectname, jwt, cb) {
  * @param status: 200 for file exists, 403 for file does not exist
  */
 function testUploadFile(username, projectname, jwt, filename, uploadStatus, existsStatus, cb) {
+    expect(uploadStatus).to.be.oneOf([201, 404, 500]);   // code must be valid 
+
     // upload the image
     chai.request(app)
         .post("/files/" + projectname + "/upload")
@@ -92,14 +95,22 @@ function testUploadFile(username, projectname, jwt, filename, uploadStatus, exis
         .attach('userFile', filename)
         .end((err, res) => {
             res.should.have.status(uploadStatus)
-            // res.text should be the url: don't bother with URI encoding because these tests aren't what we're looking for
-            // the .eql is a mess: basically when we upload the file, stored here as "media/filename", the test knows to go
-            // to the media folder to grab the file, and so does aws, just calling the file "filename".
-            // but, no one told this function, so we have to remove the "media/"
-            // Also doesn't bother with .env config: nothing more permanent than a temporary solution
-            res.should.have.property('text')
-                .eql("https://circlespace-uploads.s3.ap-southeast-2.amazonaws.com/" 
-                     + username + "/" + projectname + "/" + filename.replace('media/', ''))
+
+            if (uploadStatus == 201) {
+                // res.text should be the url: don't bother with URI encoding because these tests aren't what we're looking for
+                // the .eql is a mess: basically when we upload the file, stored here as "media/filename", the test knows to go
+                // to the media folder to grab the file, and so does aws, just calling the file "filename".
+                // but, no one told this function, so we have to remove the "media/"
+                // Also doesn't bother with .env config: nothing more permanent than a temporary solution
+                res.should.have.property('text')
+                    .eql("https://circlespace-uploads.s3.ap-southeast-2.amazonaws.com/" 
+                        + username + "/" + projectname + "/" + filename.replace('media/', ''))
+            } else if (uploadStatus == 404) {
+                res.should.have.property('text').eql('{"msg":"Could not find specified project-id for user."}')
+            } else if (uploadStatus == 500) {
+                res.should.have.property('text').eql('{"msg":"Could not insert url into database."}')
+            } // no else, we've guaranteed values for uploadStatus
+
             // verify that we can actually find the image on the internet
             verifyFileOnAWS(res.text, existsStatus, (err, res) => {
                 cb(err, res)
@@ -107,20 +118,26 @@ function testUploadFile(username, projectname, jwt, filename, uploadStatus, exis
         })
 }
 
-/* delete a DP and then test that it deleted
- * @param deleteStatus: 200 for successful deletion, 400 for user does not have dp
+/* delete a File and then test that it deleted
+ * @param username: username in database
+ * @param projectname: project name in database
+ * @param fileurl: url on aws where the file is stored
+ * @param jwt: jwt token for the user
+ * @param deleteStatus: 200 for successful deletion, 400 for validation error, 404 for could not find project-id for user
  * @param existsStatus: 200 for file exists, 403 for file does not exist
  */
-function testDeleteDP(username, jwt, deleteStatus, existsStatus, cb) {
-    // upload the dp
+function testDeleteFile(username, projectname, fileurl, jwt, deleteStatus, existsStatus, cb) {
+    let urlObject = {"fileurl": fileurl}
+
     chai.request(app)
-        .post("/profile/deleteDP")
+        .post("/files/" + projectname + "/delete")
         .set('x-auth-token', jwt)
+        .send(urlObject)
         .end((err, res) => {
             res.should.have.status(deleteStatus)
-
-            // verify that we can no longer find the image on AWS
-            verifyFileOnAWS(username + "/dp", existsStatus, (err, res) => {
+            
+            // check if we can find the image on AWS (can or can't based on status)
+            verifyFileOnAWS(fileurl, existsStatus, (err, res) => {
                 cb(err, res)
             })
         })
@@ -140,7 +157,7 @@ describe('Files', () => {
     });
 
 
-/* test the GET route for bios */
+/* test the POST route for upload */
 describe('/POST file for /files/{project-id}/upload', () => {
     it("it should sucessfully upload a file", (done) => {
         let newUser = "uploadFile";
@@ -171,9 +188,69 @@ describe('/POST file for /files/{project-id}/upload', () => {
         })
     })
 
+    it("it should not upload a file if the project does not exist", (done) => {
+        let newUser = "uploadFilenoPorjectFail";
+        let newProject = newUser + "Project";
+        signUpUserAndTest(newUser, (err, res) => {
+            let jwt = res.body.token;
+            testUploadFile(newUser, newProject, jwt, textFile, 404, 403, (err, res) => {
+                done()
+            })
+        })
+    })
+
     
 })
 
+
+describe('/POST delete file for /files/{project-id}/delete', () => {
+    it("it should sucessfully delete a file", (done) => {
+        let newUser = "deleteFile";
+        let newProject = newUser + "Project";
+
+        signUpUserAndTest(newUser, (err, res) => {
+            let jwt = res.body.token;
+            testCreateProject(newProject, jwt, (err, res) => {
+                testUploadFile(newUser, newProject, jwt, textFile, 201, 200, (err, res) => {
+                    let url = res.request.url;
+                    testDeleteFile(newUser, newProject, url, jwt, 200, 403, (err, res) => {
+                        done()
+                    })
+                })
+            })
+        })
+    })
+
+    it("it should fail to delete a file if the project does not exist", (done) => {
+        let newUser = "deleteFileFailNoProject";
+        let newProject = newUser + "Project";
+
+        signUpUserAndTest(newUser, (err, res) => {
+            let jwt = res.body.token;
+            let url = "https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/deleteFileFailNoProject/deleteFileFailNoProjectProject/file.txt";
+            testDeleteFile(newUser, newProject, url, jwt, 404, 403, (err, res) => {
+                done()
+            })
+        })
+    })
+
+    // aws gives us no indication that the deletion didn't work? 
+    // it("it should fail to delete a file that doesn't exist", (done) => {
+    //     let newUser = "deleteFileDoesNotExist";
+    //     let newProject = newUser + "Project";
+
+    //     signUpUserAndTest(newUser, (err, res) => {
+    //         let jwt = res.body.token;
+    //         testCreateProject(newProject, jwt, (err, res) => {
+    //             console.log("here")
+    //             let url = "https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/deleteFileDoesNotExist/deleteFileDoesNotExistProject/file.txt"
+    //             testDeleteFile(newUser, newProject, url, jwt, 200, 403, (err, res) => {
+    //                 done()
+    //             })
+    //         })
+    //     })
+    // })
+})
 
 });
 
