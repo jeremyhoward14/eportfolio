@@ -47,7 +47,7 @@ const uploadFile = multer({
         s3: s3,
         bucket: process.env.AWS_BUCKET,
         key: function (req, file, cb){
-            var filekey = getFolderKey(req.user.username, req.params.projectid) + file.originalname;
+            var filekey = getFolderKey(req.user.username, req.params.projectid) + encodeURIComponent(file.originalname);
             cb(null, filekey);
         },
         contentType: function (req, file, cb) {
@@ -100,9 +100,9 @@ const deleteFile = async (fileurl, callback) => {
     var starter1 = "https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/";
     var starter2 = "https://circlespace-uploads.s3.ap-southeast-2.amazonaws.com/";
     var fileKey = fileurl.replace(starter1, '');
-    var fileKey = fileurl.replace(starter2, '');
+    var fileKey = fileKey.replace(starter2, '');
 
-    s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
+    s3.deleteObject({ Key: decodeURIComponent(fileKey), Bucket: process.env.AWS_BUCKET }, function (err, data) {
         if (err) {
             callback(err.message);
         } else {
