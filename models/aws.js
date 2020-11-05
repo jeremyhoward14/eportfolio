@@ -47,7 +47,7 @@ const uploadFile = multer({
         s3: s3,
         bucket: process.env.AWS_BUCKET,
         key: function (req, file, cb){
-            var filekey = getFolderKey(req.user.username, req.params.projectid) + file.originalname;
+            var filekey = getFolderKey(req.user.username, req.params.projectid) + encodeURIComponent(file.originalname);
             cb(null, filekey);
         },
         contentType: function (req, file, cb) {
@@ -57,6 +57,31 @@ const uploadFile = multer({
         acl: 'public-read'
    }) 
 });
+
+
+/* 
+ * upload profile picture for the user.
+ * Because of the way the multer middleware works, I don't know how to have the 
+ * req object reflect if it's doing dp or file, so this function is almost 
+ * identical to uploadFile
+ */
+const uploadDP = multer({
+    storage: multerS3({
+        s3: s3,
+        bucket: process.env.AWS_BUCKET,
+        key: function (req, file, cb){
+            var filekey = req.user.username + '/dp';
+            cb(null, filekey);
+        },
+        contentType: function (req, file, cb) {
+            cb(null, getContentType(file.originalname));
+        },
+        contentDisposition: "inline",
+        acl: 'public-read'
+   }) 
+});
+
+
 
 /* 
  * delete a file given by url from AWS S3
@@ -75,9 +100,9 @@ const deleteFile = async (fileurl, callback) => {
     var starter1 = "https://circlespace-uploads.s3-ap-southeast-2.amazonaws.com/";
     var starter2 = "https://circlespace-uploads.s3.ap-southeast-2.amazonaws.com/";
     var fileKey = fileurl.replace(starter1, '');
-    var fileKey = fileurl.replace(starter2, '');
+    var fileKey = fileKey.replace(starter2, '');
 
-    s3.deleteObject({ Key: fileKey, Bucket: process.env.AWS_BUCKET }, function (err, data) {
+    s3.deleteObject({ Key: decodeURIComponent(fileKey), Bucket: process.env.AWS_BUCKET }, function (err, data) {
         if (err) {
             callback(err.message);
         } else {
@@ -224,6 +249,7 @@ function createFolder(folderName) {
 
 module.exports = {
     uploadFile,
+    uploadDP,
     deleteFile,
     getContentType,
     uploadFileLocal,

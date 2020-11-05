@@ -24,15 +24,24 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    bio: {
+    picture: String,
+    circle: [String],
+    picture: {
         type: String,
+    },
+    bio: {
+        text: String,
+        socials: [String],
+        category: {
+            type: String,
+            enum: ['JOB_SEARCHER', 'RECRUITER'],
+            default: 'JOB_SEARCHER',
+        },
     },
     projects: [{
         title: String, 
         text: String,
-        tags: [{
-            tag: String,
-        }],
+        tags: [String],
         attachments: [{
             url: String,
         }],

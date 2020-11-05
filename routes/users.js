@@ -11,12 +11,14 @@ const userController = require("../controllers/users");
  * @swagger
  * /users:
  *   get:
+ *     tags:
+ *       - users
  *     description: Returns all users.
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array of users and their respective details.
+ *         description: API Routes.
  */
 router.get("/", (req, res) => userController.getAllUsers(req, res));
 
@@ -24,6 +26,8 @@ router.get("/", (req, res) => userController.getAllUsers(req, res));
  * @swagger
  * /users/{id} :
  *   get:
+ *     tags:
+ *       - users
  *     description: Returns a single user.
  *     parameters:
  *       - in: path
@@ -47,6 +51,8 @@ router.get("/:id", (req, res) => userController.getOneUser(req, res));
  * @swagger
  * /users/signup:
  *   post:
+*     tags:
+ *       - users
  *     description: Supplying user schema adds user to database after checking validation.
  *     consumes:
  *       - application/json
@@ -89,6 +95,8 @@ router.post("/signup", (req, res)=> userController.registerUser(req, res));
  * @swagger
  * /users/login:
  *   post:
+*     tags:
+ *       - users
  *     description: Checks if the password matches email.
  *     consumes:
  *       - application/json
@@ -117,5 +125,98 @@ router.post("/signup", (req, res)=> userController.registerUser(req, res));
  */
 router.post("/login", async (req, res) => userController.loginUser(req, res));
 
+
+/**
+ * @swagger
+ * /users/delete:
+ *   post:
+ *     tags:
+ *       - users
+ *     description: deletes the logged in user from the database.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Deletes the user.
+ *       500:
+ *         description: server error.
+ *       
+ */
+router.post("/delete", auth, async (req, res) => userController.deleteUserRoute(req, res));
+
+/**
+ * @swagger
+ * /users/changePassword:
+ *   post:
+ *     tags:
+ *       - users
+ *     description: deletes the logged in user from the database.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *       - in: body
+ *         name: credentials
+ *         description: current password and new password
+ *         schema:
+ *           type: object
+ *           required:
+ *             - oldPassword
+ *             - newPassword
+ *           properties:
+ *             oldPassword:
+ *               type: string
+ *             newPassword:
+ *               type: string
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Successfully changed password.
+ *       400:
+ *         description: Incorrect password or jwt supplied.
+ *       
+ */
+router.post("/changePassword", auth, async (req, res) => userController.changePassword(req, res));
+
+
+/**
+ * @swagger
+ * /users/wipeDB:
+ *   post:
+ *     tags:
+ *       - users
+ *     deprecated: true
+ *     description: WIPE THE ENTIRE CIRCLESPACE DATABASE
+ *     consumes:
+ *       - application/json
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: DELETES EVERYTHING.
+ *       500:
+ *         description: server error.
+ *       
+ */
+router.post("/wipeDB", async (req, res) => userController.deleteAllUsers((ret) => {
+    if (ret == null) {
+        res.sendStatus(200)
+    }
+}));
 
 module.exports = router;

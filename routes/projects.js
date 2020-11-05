@@ -11,12 +11,14 @@ const auth = require('../middleware/auth')
  * @swagger
  * /projects:
  *   get:
+ *     tags:
+ *       - projects
  *     description: Returns all projects in the database.
  *     produces:
  *       - application/json
  *     responses:
  *       200:
- *         description: An array containing all projects in the database
+ *         description: An array containing all projects in the database. The format is [ {username username, project projectObject} ]
  *       500:
  *         description: Cannot connect to database.
  */
@@ -27,6 +29,8 @@ router.get("/", (req, res) => projectController.getAllProjects(req, res));
  * @swagger
  * /projects/create:
  *   post:
+ *     tags:
+ *       - projects
  *     description: Create a new project for the logged in user
  *     consumes:
  *       - application/json
@@ -53,11 +57,8 @@ router.get("/", (req, res) => projectController.getAllProjects(req, res));
  *               type: string
  *             tags:
  *               type: array
- *               items: 
- *                 type: object
- *                 properties:
- *                   tag:
- *                      type: string
+ *               items:
+ *                 type: string
  *     produces:
  *       - application/json
  *     responses:
@@ -77,6 +78,8 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  * @swagger
  * /projects/edit/{title}:
  *   post:
+ *     tags:
+ *       - projects
  *     description: Update a project. Each field in the body is not required so
  *       can update single or multiple fields at a time. Doesn't allow for the 
  *       changing of the title to one that is already used by another project of
@@ -113,11 +116,8 @@ router.post("/create", auth, (req, res) => projectController.createProject(req, 
  *               type: string
  *             tags:
  *               type: array
- *               items: 
- *                 type: object
- *                 properties:
- *                   tag:
- *                      type: string
+ *               items:
+ *                 type: string
  *     produces:
  *       - application/json
  *     responses:
@@ -136,6 +136,8 @@ router.post('/edit/:id', auth, async (req, res) => projectController.editProject
  * @swagger
  * /projects/delete/{title}:
  *   post:
+ *     tags:
+ *       - projects
  *     description: Delete a project and all of its attachments
  *     consumes:
  *       - application/json
@@ -161,13 +163,15 @@ router.post('/edit/:id', auth, async (req, res) => projectController.editProject
  *         description: Could not find specified project-id for user.
  *       
  */
-router.post("/delete/:id", auth, (req, res) => projectController.deleteProject(req, res));
+router.post("/delete/:id", auth, (req, res) => projectController.deleteProjectRoute(req, res));
 
 
 /**
  * @swagger
  * /projects/user:
  *   get:
+ *     tags:
+ *       - projects
  *     description: List all of the projects belonging to the logged in user.
  *     consumes:
  *       - application/json

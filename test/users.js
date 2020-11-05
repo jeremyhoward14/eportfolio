@@ -1,5 +1,6 @@
 let mongoose = require("mongoose");
 let User = require('../models/users');
+let userController = require('../controllers/users');
 
 //Require the dev-dependencies
 let chai = require('chai');
@@ -12,8 +13,11 @@ chai.use(chaiHttp);
 //Our parent block
 describe('Users', () => {
     beforeEach((done) => { //Before each test we empty the database
-        User.deleteOne({}, (err) => {
-           done();
+        userController.deleteAllUsers( (err) => {
+            if (err != null) {
+                console.log("error deleting database (code " + err + ")")
+            }
+            done();
         });
     });
 
@@ -42,6 +46,10 @@ describe('Users', () => {
             res.body.user.should.have.property('email');
             res.body.user.should.have.property('firstname');
             res.body.user.should.have.property('lastname');
+            res.body.user.should.have.property('picture').eql("");
+            res.body.user.should.have.property('bio');
+            res.body.user.bio.should.have.all.keys('socials', 'category', "text");
+            res.body.user.bio.text.should.eql("");
           done();
         });
   });
@@ -169,6 +177,11 @@ chai.request(app)
           res.body.user.should.have.property('firstname');
           res.body.user.should.have.property('lastname');
           res.body.user.should.have.property('projects');
+          res.body.user.should.have.property('circle');
+          res.body.user.should.have.property('picture').eql("");
+          res.body.user.should.have.property('bio');
+          res.body.user.bio.should.have.all.keys('socials', 'category', "text");
+          res.body.user.bio.text.should.eql("");
 
           done();
         });
@@ -246,10 +259,13 @@ chai.request(app)
             res.should.have.status(200);
             res.body.should.have.property('username');
             res.body.should.have.property('email');
-            res.body.should.have.property('password');
             res.body.should.have.property('firstname');
             res.body.should.have.property('lastname');
             res.body.should.have.property('projects');
+            res.body.should.have.property('circle');
+            res.body.should.have.property('bio');
+            res.body.bio.should.have.all.keys("socials", "category", "text");
+            res.body.should.have.property('picture');
           done();
         });
       }) 
