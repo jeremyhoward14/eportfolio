@@ -1,6 +1,6 @@
 let mongoose = require("mongoose");
 let User = require('../models/users');
-let userController = require('../controllers/users');
+let userController = require('../controllers/users')
 
 //Require the dev-dependencies
 let chai = require('chai');
@@ -14,10 +14,10 @@ chai.use(chaiHttp);
 //Our parent block
 describe('Projects', () => {
     beforeEach((done) => { //Before each test we empty the database
-        userController.deleteAllUsers( (status) => {
-            if (status != 200) {
-                console.log("error deleting database (code " + status + ")")
-            }
+        userController.deleteAllUsers( (err) => {
+          if (err != null) {
+              console.log("error deleting database (code " + err + ")")
+          }
             done();
         });
     });

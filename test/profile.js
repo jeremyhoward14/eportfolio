@@ -88,9 +88,9 @@ function testDeleteDP(username, jwt, deleteStatus, existsStatus, cb) {
 //Our parent block
 describe('Profiles', () => {
     beforeEach((done) => { //Before each test we empty the database
-        userController.deleteAllUsers( (status) => {
-            if (status != 200) {
-                console.log("error deleting database (code " + status + ")")
+        userController.deleteAllUsers( (err) => {
+            if (err != null) {
+                console.log("error deleting database (code " + err + ")")
             }
             done();
         });
