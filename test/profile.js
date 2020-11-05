@@ -45,7 +45,7 @@ function verifyFileOnAWS(filekey, status, cb) {
 }
 
 /* upload a DP and then test that it uploaded 
- * @param uploadStatus: 200 for successful upload, 400 for no file present, 500 for server error
+ * @param uploadStatus: 201 for successful upload, 400 for no file present, 500 for server error
  * @param status: 200 for file exists, 403 for file does not exist
  */
 function testUploadDP(username, jwt, filename, uploadStatus, existsStatus, cb) {
