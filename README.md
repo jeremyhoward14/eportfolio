@@ -8,7 +8,6 @@ This repository hosts the back-end API for the CircleSpace ePortfolio Management
 * run `npm i` to install the required dependencies
 
 ## Usage
----
 
 ### Local Deployment
 
@@ -26,11 +25,9 @@ Two Heroku servers are configured to run the server:
 * dev-circlespace.herokuapp.com hosts the deployement of the `dev` branch. It's used to host the current development environment without making changes to the production API.
 
 ## Documentation
----
 Full documentation can be found via the README in the `docs/` folder.
 
 ## Testing 
----
 
 The repository runs tests with the `Mocha` and `Chai` libraries. 
 
