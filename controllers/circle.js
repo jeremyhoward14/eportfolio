@@ -52,10 +52,10 @@ const addToCircle = async (req, res) => {
                 let info = await transporter.sendMail({
                   from: '"CircleSpace Support" <circlespace123@gmail.com>', // sender address
                   to: user2.email, // list of receivers
-                  subject: user2.username+ ", someone has added you to their Circle!", // Subject line
-                  text: "Hey there! \n\n" +user.username+ " has added you to their Circle! Add them back! \n" + 
+                  subject: user2.firstname+ ", someone has added you to their Circle!", // Subject line
+                  text: "Hey there! \n\n" +user.firstname+ " has added you to their Circle! Add them back! \n" + 
                   "Please click on the following link, or paste this into your browser to return to your profile: \n" +
-                  "https://circlespace.herokuapp.com/login", 
+                  "https://circlespace.herokuapp.com/"+user.username, 
                 });
 
                 return res.status(200).json({msg: "You have added " + user2.username + " to your circle!"})
