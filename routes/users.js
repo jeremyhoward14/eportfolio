@@ -153,6 +153,46 @@ router.post("/login", async (req, res) => userController.loginUser(req, res));
  */
 router.post("/delete", auth, async (req, res) => userController.deleteUserRoute(req, res));
 
+/**
+ * @swagger
+ * /users/changePassword:
+ *   post:
+ *     tags:
+ *       - users
+ *     description: deletes the logged in user from the database.
+ *     consumes:
+ *       - application/json
+ *     parameters:
+ *       - in: header
+ *         name: x-auth-token
+ *         required: true
+ *         type: string
+ *         minimum: 1
+ *         description: jwt
+ *       - in: body
+ *         name: credentials
+ *         description: current password and new password
+ *         schema:
+ *           type: object
+ *           required:
+ *             - oldPassword
+ *             - newPassword
+ *           properties:
+ *             oldPassword:
+ *               type: string
+ *             newPassword:
+ *               type: string
+ *     produces:
+ *       - application/json
+ *     responses:
+ *       200:
+ *         description: Successfully changed password.
+ *       400:
+ *         description: Incorrect password or jwt supplied.
+ *       
+ */
+router.post("/changePassword", auth, async (req, res) => userController.changePassword(req, res));
+
 
 /**
  * @swagger

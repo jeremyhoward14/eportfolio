@@ -6,7 +6,7 @@ const userController = require('../controllers/users')
 
 /**
  * @swagger
- * /files/{projectid}/upload:
+ * /posts:
  *   post:
  *     tags:
  *       - posts
