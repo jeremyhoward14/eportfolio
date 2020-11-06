@@ -17,6 +17,10 @@ chai.use(chaiHttp);
 
 // put some definitions of local files to try uploading
 const textFile = "media/file.txt";
+const noExtensionFile = "media/file";
+const unknownExtensionFile = "media/file.extension.bad";
+const pdfFile = "media/file.pdf";
+const pngFile = "media/file.png";
 
 
 /* register a user and the verify that worked, used for tests that create a new user first */
@@ -104,7 +108,7 @@ function testUploadFile(username, projectname, jwt, filename, uploadStatus, exis
                 // Also doesn't bother with .env config: nothing more permanent than a temporary solution
                 res.should.have.property('text')
                     .eql("https://circlespace-uploads.s3.ap-southeast-2.amazonaws.com/" 
-                        + username + "/" + projectname + "/" + filename.replace('media/', ''))
+                        + username + "/" + projectname + "/" + encodeURIComponent(filename.replace('media/', '')))
             } else if (uploadStatus == 404) {
                 res.should.have.property('text').eql('{"msg":"Could not find specified project-id for user."}')
             } else if (uploadStatus == 500) {
@@ -199,8 +203,84 @@ describe('/POST file for /files/{project-id}/upload', () => {
         })
     })
 
+
+
+
     
 })
+
+describe('/POST upload and delete files of different types (upload and delete)', () => {
+
+    it("it should sucessfully upload and delete a file withan unknown extension", (done) => {
+        let newUser = "uploadFileUnkownExtension";
+        let newProject = newUser + "Project";
+
+        signUpUserAndTest(newUser, (err, res) => {
+            let jwt = res.body.token;
+            testCreateProject(newProject, jwt, (err, res) => {
+                testUploadFile(newUser, newProject, jwt, unknownExtensionFile, 201, 200, (err, res) => {
+                    let url = res.request.url;
+                    testDeleteFile(newUser, newProject, url, jwt, 200, 403, (err, res) => {
+                        done()
+                    })
+                })
+            })
+        })
+    })
+
+    it("it should sucessfully upload and delete a file with no extension", (done) => {
+        let newUser = "uploadFileUnkownExt";
+        let newProject = newUser + "Project";
+
+        signUpUserAndTest(newUser, (err, res) => {
+            let jwt = res.body.token;
+            testCreateProject(newProject, jwt, (err, res) => {
+                testUploadFile(newUser, newProject, jwt, noExtensionFile, 201, 200, (err, res) => {
+                    let url = res.request.url;
+                    testDeleteFile(newUser, newProject, url, jwt, 200, 403, (err, res) => {
+                        done()
+                    })
+                })
+            })
+        })
+    })
+
+    it("it should sucessfully upload and delete a png file", (done) => {
+        let newUser = "uploadFilePng";
+        let newProject = newUser + "Project";
+
+        signUpUserAndTest(newUser, (err, res) => {
+            let jwt = res.body.token;
+            testCreateProject(newProject, jwt, (err, res) => {
+                testUploadFile(newUser, newProject, jwt, pngFile, 201, 200, (err, res) => {
+                    let url = res.request.url;
+                    testDeleteFile(newUser, newProject, url, jwt, 200, 403, (err, res) => {
+                        done()
+                    })
+                })
+            })
+        })
+    })
+
+    it("it should sucessfully upload and delete a pdf file", (done) => {
+        let newUser = "uploadFilePdf";
+        let newProject = newUser + "Project";
+
+        signUpUserAndTest(newUser, (err, res) => {
+            let jwt = res.body.token;
+            testCreateProject(newProject, jwt, (err, res) => {
+                testUploadFile(newUser, newProject, jwt, pdfFile, 201, 200, (err, res) => {
+                    let url = res.request.url;
+                    testDeleteFile(newUser, newProject, url, jwt, 200, 403, (err, res) => {
+                        done()
+                    })
+                })
+            })
+        })
+    })
+
+})
+
 
 
 describe('/POST delete file for /files/{project-id}/delete', () => {
@@ -250,6 +330,50 @@ describe('/POST delete file for /files/{project-id}/delete', () => {
     //         })
     //     })
     // })
+})
+
+
+describe('/POST delete all files for /projects/delete/{id}/', () => {
+    it("it should sucessfully delete all files in a project when the project is deleted", (done) => {
+        let newUser = "deleteProject";
+        let newProject = newUser + "Project";
+
+        signUpUserAndTest(newUser, (err, res) => {
+            let jwt = res.body.token;
+            testCreateProject(newProject, jwt, (err, res) => {
+
+                // upload 3 files of different types, so it's also checking that
+                testUploadFile(newUser, newProject, jwt, textFile, 201, 200, (err, res) => {
+                    let url1 = res.request.url;
+                    testUploadFile(newUser, newProject, jwt, pdfFile, 201, 200, (err, res) => {
+                        let url2 = res.request.url;
+                        testUploadFile(newUser, newProject, jwt, pngFile, 201, 200, (err, res) => {
+                            let url3 = res.request.url;
+
+                            // delete project
+                            chai.request(app)
+                            .post('/projects/delete/' + newProject)
+                            .set('x-auth-token', jwt)
+                            .end((err, res) => {
+                                res.should.have.status(200);
+                                res.body.should.have.property('msg').eql('Successfully deleted project.');
+                              
+                                // verify that all 3 files have been deleted
+                                verifyFileOnAWS(url1, 403, (err, res) => {
+                                    verifyFileOnAWS(url2, 403, (err, res) => {
+                                        verifyFileOnAWS(url3, 403, (err, res) => {
+                                            done()
+                                        })
+                                    })
+                                })
+                            })
+                        })
+                    })
+                })
+            })
+        })
+    })
+
 })
 
 });
