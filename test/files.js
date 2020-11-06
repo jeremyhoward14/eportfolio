@@ -347,24 +347,19 @@ describe('/POST delete all files for /projects/delete/{id}/', () => {
                     let url1 = res.request.url;
                     testUploadFile(newUser, newProject, jwt, pdfFile, 201, 200, (err, res) => {
                         let url2 = res.request.url;
-                        testUploadFile(newUser, newProject, jwt, pngFile, 201, 200, (err, res) => {
-                            let url3 = res.request.url;
 
-                            // delete project
-                            chai.request(app)
-                            .post('/projects/delete/' + newProject)
-                            .set('x-auth-token', jwt)
-                            .end((err, res) => {
-                                res.should.have.status(200);
-                                res.body.should.have.property('msg').eql('Successfully deleted project.');
-                              
-                                // verify that all 3 files have been deleted
-                                verifyFileOnAWS(url1, 403, (err, res) => {
-                                    verifyFileOnAWS(url2, 403, (err, res) => {
-                                        verifyFileOnAWS(url3, 403, (err, res) => {
-                                            done()
-                                        })
-                                    })
+                        // delete project
+                        chai.request(app)
+                        .post('/projects/delete/' + newProject)
+                        .set('x-auth-token', jwt)
+                        .end((err, res) => {
+                            res.should.have.status(200);
+                            res.body.should.have.property('msg').eql('Successfully deleted project.');
+                            
+                            // verify that all 3 files have been deleted
+                            verifyFileOnAWS(url1, 403, (err, res) => {
+                                verifyFileOnAWS(url2, 403, (err, res) => {
+                                    done()
                                 })
                             })
                         })
