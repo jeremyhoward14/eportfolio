@@ -9,6 +9,3 @@ node_modules/
 
 #Vscode config files.
 .vscode/
-
-# files used for testing
-*.pdf
